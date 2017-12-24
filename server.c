@@ -1,4 +1,4 @@
-#include <sys/types.h>
+fa#include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -14,6 +14,35 @@
 
 #define SERVER_PORT 1234
 #define QUEUE_SIZE 5
+
+//struktura pokoju
+struct Room
+{
+    int id;
+    char[20] name;
+    char[20] password;
+    int port;
+    int limit; //limit uzytkownikow
+    int users;  //liczba obecnych w pokoju uzytkownikow
+};
+
+//struktura wiadomosci
+struct Message
+{
+    int roomId;
+    char[120] text;
+    char[20] sender;
+    char[20] receiver;
+    char[20] date;
+};
+
+//struktura uzytkownikow
+struct User
+{
+    int id;
+    char[20] name;
+    char[20] password;
+};
 
 //struktura zawierajÄca dane, ktĂłre zostanÄ przekazane do wÄtku
 struct thread_data_t
@@ -44,13 +73,13 @@ void handleConnection(int connection_socket_descriptor) {
     //uchwyt na wÄtek
     pthread_t thread1;
 
-    
+
     //dane, ktĂłre zostanÄ przekazane do wÄtku
     //TODO dynamiczne utworzenie instancji struktury thread_data_t o nazwie t_data (+ w odpowiednim miejscu zwolnienie pamiÄci)
     //TODO wypeĹnienie pĂłl struktury
     struct thread_data_t *th_data = malloc(sizeof(struct thread_data_t));
     (*th_data).sfd = connection_socket_descriptor;
-    
+
     create_result = pthread_create(&thread1, NULL, ThreadBehavior, (void *)th_data);
     if (create_result){
        printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
