@@ -50,3 +50,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+/src/client/IRC-Client/nbproject/private/
+/src/client/IRC-Client/build/
+/src/client/IRC-Client/dist/

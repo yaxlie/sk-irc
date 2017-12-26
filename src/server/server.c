@@ -61,6 +61,10 @@ void *ThreadBehavior(void *t_data)
     while(1){
         fgets(msg, sizeof(msg), stdin);
         
+        if (msg[strlen(msg) - 1] == '\n') {
+            msg[strlen(msg) - 1] == '\0';
+            }
+        
         struct Message m;
         strncpy(m.text, msg, sizeof(m.text));
         strncpy(m.sender, "server", sizeof(m.sender));
