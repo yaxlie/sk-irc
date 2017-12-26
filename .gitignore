@@ -50,3 +50,59 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+#.gitignore for Java projects (using eclipse)
+
+# Linux
+# backup files
+*~
+
+# Windows
+# thumbnails
+Thumbs.db
+
+# Mac OS X
+# metadata
+.DS_Store
+# thumbnails
+._*
+
+# GIT
+.git/
+
+# Java
+*.class
+# packages 
+*.jar
+*.war
+*.ear
+
+# Eclipse
+.classpath
+.project
+.settings/
+ 
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+ 
+# Mac
+.DS_Store
+ 
+# Maven
+log/
+target/
+
+# Logging
+*.log
+
+# jME (binaries)
+*.so
