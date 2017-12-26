@@ -1,4 +1,4 @@
-fa#include <sys/types.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -12,15 +12,15 @@ fa#include <sys/types.h>
 #include <time.h>
 #include <pthread.h>
 
-#define SERVER_PORT 1234
+#define SERVER_PORT 12345
 #define QUEUE_SIZE 5
 
 //struktura pokoju
 struct Room
 {
     int id;
-    char[20] name;
-    char[20] password;
+    char name[20];
+    char password[20];
     int port;
     int limit; //limit uzytkownikow
     int users;  //liczba obecnych w pokoju uzytkownikow
@@ -29,20 +29,20 @@ struct Room
 //struktura wiadomosci
 struct Message
 {
-    int roomId;
-    char[120] text;
-    char[20] sender;
-    char[20] receiver;
-    char[20] date;
+    char text[240];
+    char sender[20];
+    char receiver[20];
+    char date[40];
 };
 
 //struktura uzytkownikow
 struct User
 {
     int id;
-    char[20] name;
-    char[20] password;
+    char name[20];
+    char password[20];
 };
+
 
 //struktura zawierajÄca dane, ktĂłre zostanÄ przekazane do wÄtku
 struct thread_data_t
@@ -50,17 +50,24 @@ struct thread_data_t
     int sfd;
 };
 
+
 //funkcja opisujÄcÄ zachowanie wÄtku - musi przyjmowaÄ argument typu (void *) i zwracaÄ (void *)
 void *ThreadBehavior(void *t_data)
 {
     pthread_detach(pthread_self());
     struct thread_data_t *th_data = (struct thread_data_t*)t_data;
     //dostÄp do pĂłl struktury: (*th_data).pole
-    //TODO (przy zadaniu 1) klawiatura -> wysyĹanie albo odbieranie -> wyĹwietlanie
-    char msg[128];
+    char msg[240];
     while(1){
-    fgets(msg, sizeof(msg), stdin);
-    write( (*th_data).sfd, msg, sizeof(msg));
+        fgets(msg, sizeof(msg), stdin);
+        
+        struct Message m;
+        strncpy(m.text, msg, sizeof(m.text));
+        strncpy(m.sender, "server", sizeof(m.sender));
+        strncpy(m.receiver, "client", sizeof(m.receiver));
+        strncpy(m.date, "10-10-2010", sizeof(m.date));
+        
+        write( (*th_data).sfd, &m, sizeof(struct Message));
     }
     pthread_exit(NULL);
 }
@@ -147,5 +154,4 @@ int main(int argc, char* argv[])
 
    close(server_socket_descriptor);
    return(0);
-   }
 }

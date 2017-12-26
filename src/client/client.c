@@ -19,6 +19,15 @@ struct thread_data_t
     int sfd;
 };
 
+//struktura wiadomosci
+struct Message
+{
+    char text[240];
+    char sender[20];
+    char receiver[20];
+    char date[40];
+};
+
 //wskaĹşnik na funkcjÄ opisujÄcÄ zachowanie wÄtku
 void *ThreadBehavior(void *t_data)
 {
@@ -59,10 +68,10 @@ void handleConnection(int connection_socket_descriptor) {
     }
 
     //TODO (przy zadaniu 1) odbieranie -> wyĹwietlanie albo klawiatura -> wysyĹanie
-    char msg[128];
+    struct Message m;
     while(1){
-    read(t_data.sfd,msg,sizeof(msg));
-    printf("serer: %s",msg);
+    read(t_data.sfd,&m,sizeof(struct Message));
+    printf("%s: %s",m.sender, m.text);
     }
 }
 
