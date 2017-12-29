@@ -50,10 +50,20 @@ struct thread_data_t
     int sfd;
 };
 
+    struct Room listaPokojow[20];
 
 //funkcja opisujÄcÄ zachowanie wÄtku - musi przyjmowaÄ argument typu (void *) i zwracaÄ (void *)
 void *ThreadBehavior(void *t_data)
 {
+    int i = 0;
+	//inicjalizajca pokojow
+    while(i < 20){
+	listaPokojow[i].id = i;
+	listaPokojow[i].port = 7500 + (i * 10);
+	strcpy(listaPokojow[i].name, "nazwa");
+	listaPokojow[i].limit = 10;
+	listaPokojow[i].users = 0;
+     }
     pthread_detach(pthread_self());
     struct thread_data_t *th_data = (struct thread_data_t*)t_data;
     //dostÄp do pĂłl struktury: (*th_data).pole
@@ -99,8 +109,10 @@ void handleConnection(int connection_socket_descriptor) {
 
     //TODO (przy zadaniu 1) odbieranie -> wyĹwietlanie albo klawiatura -> wysyĹanie
     char msg[128];
-    while(1){
-        read((*th_data).sfd,msg,sizeof(msg));
+   
+	write( (*th_data).sfd, &listaPokojow, sizeof(struct Room)*20);
+	while(1){        
+	read((*th_data).sfd,msg,sizeof(msg));
         printf("client: %s",msg);
         if(!strcmp(msg,"exit")){
         break;
@@ -159,3 +171,4 @@ int main(int argc, char* argv[])
    close(server_socket_descriptor);
    return(0);
 }
+
