@@ -56,6 +56,7 @@ struct thread_data_t
     struct User users[100];
 };
 
+struct thread_data_t *t_data_main; 
 
 //TODO wysylanie danych do wszystkich klientow, cos jak to ponizej :
 /*sendDataToClients(struct thread_data_t th_data)
@@ -69,25 +70,15 @@ struct thread_data_t
         }
     }
 }*/
-int assignCPort(struct User (*u)[], char *name)
+int assignCPort(struct User u[])
 {
     int i;
     for(i=0;i<MAX_USERS;i++)
     {
-        if((*u)[i].port == 0)
-        {
-           // User u_;
-            ((*u)[i]).port = CLIENT_PORT + i;
-            strncpy((*u)[i].name, name, sizeof((*u)[i].name));
-            printf("%s \n", name);
-           // u_.name = name;
-           // u_.port = CLIENT_PORT + i;
-           // (*u)[i] = u_; 
-            
+        if(u[i].port == 0)
             break;
-        }
     }
-    return CLIENT_PORT + i;
+    return i;
 }
     
 
@@ -121,7 +112,8 @@ void handleConnection(int connection_socket_descriptor) {
 
 
     //dane, ktĂłre zostanÄ przekazane do wÄtku
-    struct thread_data_t *th_data = malloc(sizeof(struct thread_data_t));
+    struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
+    //struct thread_data_t *th_data = malloc(sizeof(struct thread_data_t));
     (*th_data).sfd = connection_socket_descriptor;
 
     create_result = pthread_create(&thread1, NULL, ThreadBehavior, (void *)th_data);
@@ -132,7 +124,11 @@ void handleConnection(int connection_socket_descriptor) {
 
     char msg[20];      
     if(read((*th_data).sfd,msg,sizeof(msg))){
-        int port = assignCPort((*th_data).users, msg);
+        int id = assignCPort((*th_data).users);
+        int port = id + CLIENT_PORT;
+        (*th_data).users[id].port = port;
+        strncpy((*th_data).users[id].name, msg, sizeof(msg));
+        
         int conv_port = htonl(port);
         write((*th_data).sfd, &conv_port, sizeof(conv_port));
         printf("client: %s chce uzyskać port \n",msg);
@@ -148,6 +144,8 @@ int main(int argc, char* argv[])
    int listen_result;
    char reuse_addr_val = 1;
    struct sockaddr_in server_address;
+   
+   t_data_main = malloc(sizeof(struct thread_data_t));
 
    //inicjalizacja gniazda serwera
    memset(&server_address, 0, sizeof(struct sockaddr));
