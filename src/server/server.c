@@ -55,33 +55,19 @@ struct thread_data_t
 //funkcja opisujÄcÄ zachowanie wÄtku - musi przyjmowaÄ argument typu (void *) i zwracaÄ (void *)
 void *ThreadBehavior(void *t_data)
 {
-    int i = 0;
-	//inicjalizajca pokojow
-    while(i < 20){
-	listaPokojow[i].id = i;
-	listaPokojow[i].port = 7500 + (i * 10);
-	strcpy(listaPokojow[i].name, "nazwa");
-	listaPokojow[i].limit = 10;
-	listaPokojow[i].users = 0;
-     }
+    
     pthread_detach(pthread_self());
     struct thread_data_t *th_data = (struct thread_data_t*)t_data;
     //dostÄp do pĂłl struktury: (*th_data).pole
     char msg[240];
     while(1){
-        fgets(msg, sizeof(msg), stdin);
-        
-        if (msg[strlen(msg) - 1] == '\n') {
-            msg[strlen(msg) - 1] == '\0';
-            }
-        
-        struct Message m;
+        /*struct Message m;
         strncpy(m.text, msg, sizeof(m.text));
         strncpy(m.sender, "server", sizeof(m.sender));
         strncpy(m.receiver, "client", sizeof(m.receiver));
-        strncpy(m.date, "10-10-2010", sizeof(m.date));
+        strncpy(m.date, "10-10-2010", sizeof(m.date));*/
         
-        write( (*th_data).sfd, &m, sizeof(struct Message));
+
     }
     pthread_exit(NULL);
 }
@@ -105,14 +91,15 @@ void handleConnection(int connection_socket_descriptor) {
        exit(-1);
     }
 
-    char msg[128];
+    char msg[20];
    
-	write( (*th_data).sfd, &listaPokojow, sizeof(struct Room)*20);
 	while(1){        
-	read((*th_data).sfd,msg,sizeof(msg));
-        printf("client: %s chce uzyskać port \n",msg);
-        //TODO wyslac przydzielony port dla clienta, ktory ch
-        break;
+	if(read((*th_data).sfd,msg,sizeof(msg))){
+            int port = 10000;
+            int conv_port = htonl(port);
+            write((*th_data).sfd, &conv_port, sizeof(conv_port));
+            printf("client: %s chce uzyskać port \n",msg);
+        }
     }
 }
 
