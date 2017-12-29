@@ -12,6 +12,7 @@
 #include <time.h>
 #include <pthread.h>
 
+
 #define SERVER_PORT 12345
 #define QUEUE_SIZE 5
 
@@ -49,8 +50,22 @@ struct thread_data_t
 {
     int sfd;
 };
+//Inicjalizacja zmiennych globalnych uzywanych przez server
 
     struct Room listaPokojow[20];
+    struct User userList[2000];
+    int userCount = 0;
+
+int newUserPort(){
+    int q = 0;
+    while(q < 2000){
+	if(userList[q].id == -1){
+	    return q;
+	    break;    
+	}
+    }
+    printf("Nie ma wolnego miejsca sproboj pozniej");
+}
 
 //funkcja opisujÄcÄ zachowanie wÄtku - musi przyjmowaÄ argument typu (void *) i zwracaÄ (void *)
 void *ThreadBehavior(void *t_data)
@@ -63,7 +78,13 @@ void *ThreadBehavior(void *t_data)
 	strcpy(listaPokojow[i].name, "nazwa");
 	listaPokojow[i].limit = 10;
 	listaPokojow[i].users = 0;
-     }
+	i = i+1;     
+    }
+    i = 0;
+    while(i < 2001){
+	userList[i].id = -1;
+	i = i+1;
+    }
     pthread_detach(pthread_self());
     struct thread_data_t *th_data = (struct thread_data_t*)t_data;
     //dostÄp do pĂłl struktury: (*th_data).pole
@@ -96,8 +117,6 @@ void handleConnection(int connection_socket_descriptor) {
 
 
     //dane, ktĂłre zostanÄ przekazane do wÄtku
-    //TODO dynamiczne utworzenie instancji struktury thread_data_t o nazwie t_data (+ w odpowiednim miejscu zwolnienie pamiÄci)
-    //TODO wypeĹnienie pĂłl struktury
     struct thread_data_t *th_data = malloc(sizeof(struct thread_data_t));
     (*th_data).sfd = connection_socket_descriptor;
 
@@ -107,18 +126,18 @@ void handleConnection(int connection_socket_descriptor) {
        exit(-1);
     }
 
-    //TODO (przy zadaniu 1) odbieranie -> wyĹwietlanie albo klawiatura -> wysyĹanie
     char msg[128];
-   
-	write( (*th_data).sfd, &listaPokojow, sizeof(struct Room)*20);
-	while(1){        
+    while(1){        
 	read((*th_data).sfd,msg,sizeof(msg));
-        printf("client: %s",msg);
-        if(!strcmp(msg,"exit")){
-        break;
-        }
+        printf("client: %s chce uzyskać port \n",msg);
+        int chand = newUserPort();
+	userList[chand].id = chand;
+	sprintf(msg,"%d", chand+7500);
+	write( (*th_data).sfd, &msg, sizeof(msg));	
+	break;
     }
 }
+
 
 int main(int argc, char* argv[])
 {
