@@ -91,15 +91,12 @@ void handleConnection(int connection_socket_descriptor) {
        exit(-1);
     }
 
-    char msg[20];
-   
-	while(1){        
-	if(read((*th_data).sfd,msg,sizeof(msg))){
-            int port = 10000;
-            int conv_port = htonl(port);
-            write((*th_data).sfd, &conv_port, sizeof(conv_port));
-            printf("client: %s chce uzyskać port \n",msg);
-        }
+    char msg[20];      
+    if(read((*th_data).sfd,msg,sizeof(msg))){
+        int port = 10000;
+        int conv_port = htonl(port);
+        write((*th_data).sfd, &conv_port, sizeof(conv_port));
+        printf("client: %s chce uzyskać port \n",msg);
     }
 }
 
