@@ -96,8 +96,6 @@ void handleConnection(int connection_socket_descriptor) {
 
 
     //dane, ktĂłre zostanÄ przekazane do wÄtku
-    //TODO dynamiczne utworzenie instancji struktury thread_data_t o nazwie t_data (+ w odpowiednim miejscu zwolnienie pamiÄci)
-    //TODO wypeĹnienie pĂłl struktury
     struct thread_data_t *th_data = malloc(sizeof(struct thread_data_t));
     (*th_data).sfd = connection_socket_descriptor;
 
@@ -107,16 +105,14 @@ void handleConnection(int connection_socket_descriptor) {
        exit(-1);
     }
 
-    //TODO (przy zadaniu 1) odbieranie -> wyĹwietlanie albo klawiatura -> wysyĹanie
     char msg[128];
    
 	write( (*th_data).sfd, &listaPokojow, sizeof(struct Room)*20);
 	while(1){        
 	read((*th_data).sfd,msg,sizeof(msg));
-        printf("client: %s",msg);
-        if(!strcmp(msg,"exit")){
+        printf("client: %s chce uzyskać port \n",msg);
+        //TODO wyslac przydzielony port dla clienta, ktory ch
         break;
-        }
     }
 }
 

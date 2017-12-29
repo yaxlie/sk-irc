@@ -23,6 +23,7 @@ import javafx.scene.control.Label;
  */
 public class FXMLLobbyController implements Initializable {
     
+//    private IRCSingleton irc = IRCSingleton.getInstance();
     @FXML
     private Label label;
     
@@ -34,21 +35,20 @@ public class FXMLLobbyController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        try {
-            Socket clientSocket = new Socket("localhost", 12345);
-            InputStream is = clientSocket.getInputStream();
-            byte[] buffer = new byte[320];
-            is.read(buffer);
-            
-            IRCMessage message = new IRCMessage(buffer);
-            
-            
-            String msg = message.getText()+message.getSender()+message.getReceiver()+message.getDate();
-            System.out.println(msg);
-            clientSocket.close();
-        } catch (IOException ex) {
-            Logger.getLogger(FXMLLobbyController.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//       try {
+////            Socket clientSocket = new Socket("localhost", 12345);
+//            InputStream is = irc.getServerSocket().getInputStream();
+//            byte[] buffer = new byte[320];
+//            is.read(buffer);
+//            
+//            IRCMessage message = new IRCMessage(buffer);
+//            
+//            
+//            String msg = message.getText()+message.getSender()+message.getReceiver()+message.getDate();
+//            System.out.println(msg);
+//        } catch (IOException ex) {
+//            Logger.getLogger(FXMLLobbyController.class.getName()).log(Level.SEVERE, null, ex);
+//        }
     }    
     
 }
