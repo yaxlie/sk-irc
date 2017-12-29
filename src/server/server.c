@@ -59,7 +59,7 @@ struct thread_data_t
 struct thread_data_t *t_data_main; 
 
 //TODO wysylanie danych do wszystkich klientow, cos jak to ponizej :
-/*sendDataToClients(struct thread_data_t th_data)
+void sendDataToClients(struct thread_data_t th_data)
 {
     int i;
     for(i=0;i<MAX_USERS;i++)
@@ -67,9 +67,11 @@ struct thread_data_t *t_data_main;
         if(th_data.users[i].port != 0)
         {
             write(th_data.users[i].port, &th_data, sizeof(struct thread_data_t));
+            printf("Wyslano główną strukturę do  : %d \n",th_data.users[i].port);
         }
     }
-}*/
+}
+
 int assignCPort(struct User u[])
 {
     int i;
@@ -132,7 +134,7 @@ void handleConnection(int connection_socket_descriptor) {
         int conv_port = htonl(port);
         write((*th_data).sfd, &conv_port, sizeof(conv_port));
         printf("client: %s chce uzyskać port \n",msg);
-       //TODO sendDataToClients(*th_data);
+        sendDataToClients(*th_data);
     }
 }
 
