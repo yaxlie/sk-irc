@@ -11,10 +11,15 @@
 #include <string.h>
 #include <time.h>
 #include <pthread.h>
+#include "stack.h"
 
 #define SERVER_PORT 12345
+#define MAX_USERS 100
+#define CLIENT_PORT 2000
 #define QUEUE_SIZE 5
 
+
+int client_port = CLIENT_PORT;
 //struktura pokoju
 struct Room
 {
@@ -38,9 +43,8 @@ struct Message
 //struktura uzytkownikow
 struct User
 {
-    int id;
+    int port;
     char name[20];
-    char password[20];
 };
 
 
@@ -48,9 +52,44 @@ struct User
 struct thread_data_t
 {
     int sfd;
+    struct Room listaPokojow[10];
+    struct User users[100];
 };
 
-    struct Room listaPokojow[20];
+
+//TODO wysylanie danych do wszystkich klientow, cos jak to ponizej :
+/*sendDataToClients(struct thread_data_t th_data)
+{
+    int i;
+    for(i=0;i<MAX_USERS;i++)
+    {
+        if(th_data.users[i].port != 0)
+        {
+            write(th_data.users[i].port, &th_data, sizeof(struct thread_data_t));
+        }
+    }
+}*/
+int assignCPort(struct User (*u)[], char *name)
+{
+    int i;
+    for(i=0;i<MAX_USERS;i++)
+    {
+        if((*u)[i].port == 0)
+        {
+           // User u_;
+            ((*u)[i]).port = CLIENT_PORT + i;
+            strncpy((*u)[i].name, name, sizeof((*u)[i].name));
+            printf("%s \n", name);
+           // u_.name = name;
+           // u_.port = CLIENT_PORT + i;
+           // (*u)[i] = u_; 
+            
+            break;
+        }
+    }
+    return CLIENT_PORT + i;
+}
+    
 
 //funkcja opisujÄcÄ zachowanie wÄtku - musi przyjmowaÄ argument typu (void *) i zwracaÄ (void *)
 void *ThreadBehavior(void *t_data)
@@ -93,10 +132,11 @@ void handleConnection(int connection_socket_descriptor) {
 
     char msg[20];      
     if(read((*th_data).sfd,msg,sizeof(msg))){
-        int port = 10000;
+        int port = assignCPort((*th_data).users, msg);
         int conv_port = htonl(port);
         write((*th_data).sfd, &conv_port, sizeof(conv_port));
         printf("client: %s chce uzyskać port \n",msg);
+       //TODO sendDataToClients(*th_data);
     }
 }
 
