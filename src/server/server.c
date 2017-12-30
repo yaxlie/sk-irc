@@ -227,10 +227,12 @@ void handleConnection(int connection_socket_descriptor) {
         write((*th_data).sfd, &conv_port, sizeof(conv_port));
         printf("client: %s chce uzyskać port \n",msg);
         sendDataToClients(*th_data);
-	printf("Server otwiera nowy port na ktorym bedzie nasluchiwac\n");
-	OpenNewSocket(port);
-	CreateRoom(port);    
-    }
+		printf("Server otwiera nowy port na ktorym bedzie nasluchiwac\n");
+		if(fork() == 0){
+		}else{
+			OpenNewSocket(port);
+		}
+	}
 }
 
 
