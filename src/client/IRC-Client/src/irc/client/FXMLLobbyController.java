@@ -26,7 +26,7 @@ import javafx.scene.control.TextArea;
  */
 public class FXMLLobbyController implements Initializable {
     
-//    private IRCSingleton irc = IRCSingleton.getInstance();
+    private IRCSingleton irc = IRCSingleton.getInstance();
     @FXML
     private Label label;
     @FXML
@@ -46,6 +46,7 @@ public class FXMLLobbyController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        irc.setfXMLLobbyController(this);
 //       try {
 ////            Socket clientSocket = new Socket("localhost", 12345);
 //            InputStream is = irc.getServerSocket().getInputStream();
@@ -65,5 +66,9 @@ public class FXMLLobbyController implements Initializable {
         Thread thread = new Thread(mr);
         thread.start();
     }    
+
+    public ListView getUserList() {
+        return userList;
+    }
     
 }

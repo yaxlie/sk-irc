@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
 
 /**
  *
@@ -44,8 +46,18 @@ public class LobbyListener implements Runnable{
                  byte[] buffer = new byte[5000];
                  is.read(buffer);
                  //int port = ByteBuffer.wrap(buffer).getInt();
-                 String s = new String(buffer, "UTF-8");
-                 System.out.println(s);
+//                 String s = new String(buffer, "UTF-8");
+//                 System.out.println(s);
+//                 int pointer = 0;
+//                pointer += LobbyDataProcessing.ROOM_STRUCT_SIZE * 10;
+//                 byte [] sub = Arrays.copyOfRange(buffer, pointer, 5000);
+//                 System.out.println(new String(sub, "UTF-8"));
+                 LobbyDataProcessing lobbyDataProcessing = new LobbyDataProcessing(buffer);
+                 lobbyDataProcessing.process();
+                 
+                 irc.getfXMLLobbyController().getUserList().
+                         setItems(FXCollections.observableArrayList(irc.getLobbyInfo().getUserNames()));
+                 
             } catch (IOException ex) {
                 Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
             }

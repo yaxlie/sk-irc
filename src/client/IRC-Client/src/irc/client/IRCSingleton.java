@@ -20,11 +20,15 @@ import java.util.logging.Logger;
 public class IRCSingleton {
    private static IRCSingleton instance = null;
    
+   private LobbyInfo lobbyInfo;
    private ClientInfo clientInfo;
    private ServerInfo serverInfo;
    private Socket serverSocket;
    
+   private FXMLLobbyController fXMLLobbyController;
+   
    protected IRCSingleton() {
+        lobbyInfo = new LobbyInfo();
         clientInfo = new ClientInfo();
         serverInfo = new ServerInfo();
        try {
@@ -88,5 +92,22 @@ public class IRCSingleton {
            Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
        }
     }
+
+    public LobbyInfo getLobbyInfo() {
+        return lobbyInfo;
+    }
+
+    public void setLobbyInfo(LobbyInfo lobbyInfo) {
+        this.lobbyInfo = lobbyInfo;
+    }
+
+    public FXMLLobbyController getfXMLLobbyController() {
+        return fXMLLobbyController;
+    }
+
+    public void setfXMLLobbyController(FXMLLobbyController fXMLLobbyController) {
+        this.fXMLLobbyController = fXMLLobbyController;
+    }
+    
     
 }
