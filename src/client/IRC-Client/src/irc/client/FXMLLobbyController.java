@@ -60,6 +60,10 @@ public class FXMLLobbyController implements Initializable {
 //        } catch (IOException ex) {
 //            Logger.getLogger(FXMLLobbyController.class.getName()).log(Level.SEVERE, null, ex);
 //        }
+
+        LobbyListener mr = new LobbyListener(true);
+        Thread thread = new Thread(mr);
+        thread.start();
     }    
     
 }

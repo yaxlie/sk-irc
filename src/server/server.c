@@ -26,7 +26,6 @@ struct Room
     int id;
     char name[20];
     char password[20];
-    int port;
     int limit; //limit uzytkownikow
     int users;  //liczba obecnych w pokoju uzytkownikow
 };
@@ -47,27 +46,33 @@ struct User
     char name[20];
 };
 
+struct data2send
+{
+    struct Room listaPokojow[10];
+    struct User users[100];
+};
 
 //struktura zawierajÄca dane, ktĂłre zostanÄ przekazane do wÄtku
 struct thread_data_t
 {
     int sfd;
-    struct Room listaPokojow[10];
-    struct User users[100];
+    struct data2send data;
 };
+
+
 
 struct thread_data_t *t_data_main; 
 
-//TODO wysylanie danych do wszystkich klientow, cos jak to ponizej :
+//TODO write(th_data.sfd zamienic na sockety poszczegolnych klientow
 void sendDataToClients(struct thread_data_t th_data)
 {
     int i;
     for(i=0;i<MAX_USERS;i++)
     {
-        if(th_data.users[i].port != 0)
+        if(th_data.data.users[i].port != 0)
         {
-            write(th_data.users[i].port, &th_data, sizeof(struct thread_data_t));
-            printf("Wyslano główną strukturę do  : %d \n",th_data.users[i].port);
+            //write(th_data.sfd, &th_data.data, 5000);
+            printf("Wyslano główną strukturę do  : %d \n",th_data.data.users[i].port);
         }
     }
 }
@@ -93,12 +98,14 @@ void *ThreadBehavior(void *t_data)
     //dostÄp do pĂłl struktury: (*th_data).pole
     char msg[240];
     while(1){
+        scanf("%s", &msg);
         /*struct Message m;
         strncpy(m.text, msg, sizeof(m.text));
         strncpy(m.sender, "server", sizeof(m.sender));
         strncpy(m.receiver, "client", sizeof(m.receiver));
         strncpy(m.date, "10-10-2010", sizeof(m.date));*/
-        
+        write((*th_data).sfd, &(*th_data).data, sizeof(struct data2send));
+        printf("wyslano %s \n", msg);
 
     }
     pthread_exit(NULL);
@@ -126,10 +133,10 @@ void handleConnection(int connection_socket_descriptor) {
 
     char msg[20];      
     if(read((*th_data).sfd,msg,sizeof(msg))){
-        int id = assignCPort((*th_data).users);
+        int id = assignCPort((*th_data).data.users);
         int port = id + CLIENT_PORT;
-        (*th_data).users[id].port = port;
-        strncpy((*th_data).users[id].name, msg, sizeof(msg));
+        (*th_data).data.users[id].port = port;
+        strncpy((*th_data).data.users[id].name, msg, sizeof(msg));
         
         int conv_port = htonl(port);
         write((*th_data).sfd, &conv_port, sizeof(conv_port));

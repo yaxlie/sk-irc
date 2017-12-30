@@ -82,6 +82,7 @@ public class IRCSingleton {
             is.read(buffer);
             int port = ByteBuffer.wrap(buffer).getInt();
             System.out.println(port);
+            clientInfo.setPort(port);
             serverSocket.close();
        } catch (IOException ex) {
            Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
