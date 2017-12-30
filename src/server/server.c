@@ -11,11 +11,15 @@
 #include <string.h>
 #include <time.h>
 #include <pthread.h>
-
+#include "stack.h"
 
 #define SERVER_PORT 12345
+#define MAX_USERS 100
+#define CLIENT_PORT 2000
 #define QUEUE_SIZE 5
 
+
+int client_port = CLIENT_PORT;
 //struktura pokoju
 struct Room
 {
@@ -39,9 +43,8 @@ struct Message
 //struktura uzytkownikow
 struct User
 {
-    int id;
+    int port;
     char name[20];
-    char password[20];
 };
 
 
@@ -49,63 +52,149 @@ struct User
 struct thread_data_t
 {
     int sfd;
+    struct Room listaPokojow[10];
+    struct User users[100];
 };
-//Inicjalizacja zmiennych globalnych uzywanych przez server
 
-    struct Room listaPokojow[20];
-    struct User userList[2000];
-    int userCount = 0;
+struct thread_data_t *t_data_main; 
 
-int newUserPort(){
-    int q = 0;
-    while(q < 2000){
-	if(userList[q].id == -1){
-	    return q;
-	    break;    
-	}
+
+
+
+//TODO wysylanie danych do wszystkich klientow, cos jak to ponizej :
+void sendDataToClients(struct thread_data_t th_data)
+{
+    int i;
+    for(i=0;i<MAX_USERS;i++)
+    {
+        if(th_data.users[i].port != 0)
+        {
+            write(th_data.users[i].port, &th_data, sizeof(struct thread_data_t));
+            printf("Wyslano główną strukturę do  : %d \n",th_data.users[i].port);
+        }
     }
-    printf("Nie ma wolnego miejsca sproboj pozniej");
 }
 
 //funkcja opisujÄcÄ zachowanie wÄtku - musi przyjmowaÄ argument typu (void *) i zwracaÄ (void *)
 void *ThreadBehavior(void *t_data)
 {
-    int i = 0;
-	//inicjalizajca pokojow
-    while(i < 20){
-	listaPokojow[i].id = i;
-	listaPokojow[i].port = 7500 + (i * 10);
-	strcpy(listaPokojow[i].name, "nazwa");
-	listaPokojow[i].limit = 10;
-	listaPokojow[i].users = 0;
-	i = i+1;     
-    }
-    i = 0;
-    while(i < 2001){
-	userList[i].id = -1;
-	i = i+1;
-    }
+    
     pthread_detach(pthread_self());
     struct thread_data_t *th_data = (struct thread_data_t*)t_data;
     //dostÄp do pĂłl struktury: (*th_data).pole
     char msg[240];
     while(1){
-        fgets(msg, sizeof(msg), stdin);
-        
-        if (msg[strlen(msg) - 1] == '\n') {
-            msg[strlen(msg) - 1] == '\0';
-            }
-        
-        struct Message m;
+        /*struct Message m;
         strncpy(m.text, msg, sizeof(m.text));
         strncpy(m.sender, "server", sizeof(m.sender));
         strncpy(m.receiver, "client", sizeof(m.receiver));
-        strncpy(m.date, "10-10-2010", sizeof(m.date));
+        strncpy(m.date, "10-10-2010", sizeof(m.date));*/
         
-        write( (*th_data).sfd, &m, sizeof(struct Message));
+
     }
     pthread_exit(NULL);
 }
+
+
+
+
+
+int assignCPort(struct User u[])
+{
+    int i;
+    for(i=0;i<MAX_USERS;i++)
+    {
+        if(u[i].port == 0)
+            break;
+    }
+    return i;
+}
+    
+
+void CreateRoom(int connection_socket_descriptor) {
+    //wynik funkcji tworzÄcej wÄtek
+    int create_result = 0;
+
+    //uchwyt na wÄtek
+    pthread_t thread1;
+
+
+    //dane, ktĂłre zostanÄ przekazane do wÄtku
+    struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
+    //struct thread_data_t *th_data = malloc(sizeof(struct thread_data_t));
+    (*th_data).sfd = connection_socket_descriptor;
+
+    create_result = pthread_create(&thread1, NULL, ThreadBehavior, (void *)th_data);
+    if (create_result){
+       printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+       exit(-1);
+    }
+
+    char msg[20];      
+	printf("dd\n");
+    if(read((*th_data).sfd,msg,sizeof(msg))){
+	printf("ddddsdsdsdsd \n");
+    }
+}
+
+
+
+//Funkcja ktora otwiera nowy port
+
+int OpenNewSocket(int port){
+   int server_socket_descriptor;
+   int connection_socket_descriptor;
+   int bind_result;
+   int listen_result;
+   char reuse_addr_val = 1;
+   struct sockaddr_in server_address;
+   
+   t_data_main = malloc(sizeof(struct thread_data_t));
+
+   //inicjalizacja gniazda serwera
+   memset(&server_address, 0, sizeof(struct sockaddr));
+   server_address.sin_family = AF_INET;
+   server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+   server_address.sin_port = htons(port);
+
+   server_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+   if (server_socket_descriptor < 0)
+   {
+       fprintf(stderr, "Błąd przy próbie utworzenia gniazda..\n");
+       return 0;
+   }
+   setsockopt(server_socket_descriptor, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse_addr_val, sizeof(reuse_addr_val));
+
+   bind_result = bind(server_socket_descriptor, (struct sockaddr*)&server_address, sizeof(struct sockaddr));
+   if (bind_result < 0)
+   {
+       fprintf(stderr, "Błąd przy próbie dowiązania adresu IP i numeru portu do gniazda.\n");
+       return 0;
+   }
+
+   listen_result = listen(server_socket_descriptor, QUEUE_SIZE);
+   if (listen_result < 0) {
+       fprintf(stderr, "Błąd przy próbie ustawienia wielkości kolejki.\n");
+       return 0;
+   }
+
+   while(1)
+   {
+       connection_socket_descriptor = accept(server_socket_descriptor, NULL, NULL);
+       if (connection_socket_descriptor < 0)
+       {
+           fprintf(stderr, "Błąd przy próbie utworzenia gniazda dla połączenia.\n");
+           return 0;
+       }
+    CreateRoom(server_socket_descriptor);
+   }
+}
+
+
+
+
+
+
 
 //funkcja obsĹugujÄca poĹÄczenie z nowym klientem
 void handleConnection(int connection_socket_descriptor) {
@@ -117,7 +206,8 @@ void handleConnection(int connection_socket_descriptor) {
 
 
     //dane, ktĂłre zostanÄ przekazane do wÄtku
-    struct thread_data_t *th_data = malloc(sizeof(struct thread_data_t));
+    struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
+    //struct thread_data_t *th_data = malloc(sizeof(struct thread_data_t));
     (*th_data).sfd = connection_socket_descriptor;
 
     create_result = pthread_create(&thread1, NULL, ThreadBehavior, (void *)th_data);
@@ -126,15 +216,20 @@ void handleConnection(int connection_socket_descriptor) {
        exit(-1);
     }
 
-    char msg[128];
-    while(1){        
-	read((*th_data).sfd,msg,sizeof(msg));
+    char msg[20];      
+    if(read((*th_data).sfd,msg,sizeof(msg))){
+        int id = assignCPort((*th_data).users);
+        int port = id + CLIENT_PORT;
+        (*th_data).users[id].port = port;
+        strncpy((*th_data).users[id].name, msg, sizeof(msg));
+        
+        int conv_port = htonl(port);
+        write((*th_data).sfd, &conv_port, sizeof(conv_port));
         printf("client: %s chce uzyskać port \n",msg);
-        int chand = newUserPort();
-	userList[chand].id = chand;
-	sprintf(msg,"%d", chand+7500);
-	write( (*th_data).sfd, &msg, sizeof(msg));	
-	break;
+        sendDataToClients(*th_data);
+	printf("Server otwiera nowy port na ktorym bedzie nasluchiwac\n");
+	OpenNewSocket(port);
+	CreateRoom(port);    
     }
 }
 
@@ -147,6 +242,8 @@ int main(int argc, char* argv[])
    int listen_result;
    char reuse_addr_val = 1;
    struct sockaddr_in server_address;
+   
+   t_data_main = malloc(sizeof(struct thread_data_t));
 
    //inicjalizacja gniazda serwera
    memset(&server_address, 0, sizeof(struct sockaddr));
