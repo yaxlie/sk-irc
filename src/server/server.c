@@ -55,7 +55,6 @@ struct data2send
 //struktura zawierajÄca dane, ktĂłre zostanÄ przekazane do wÄtku
 struct thread_data_t
 {
-    //socket prosby o przydzielenie portu
     int sfd;
     
     //users lobby sockets
@@ -82,77 +81,6 @@ int assignCPort(struct User u[])
             break;
     }
     return i;
-}
-    
-
-//funkcja opisujÄcÄ zachowanie wÄtku - musi przyjmowaÄ argument typu (void *) i zwracaÄ (void *)
-void *SendLobbyBehavior(void *arg)
-{
-    pthread_detach(pthread_self());
-    int id = (int*) arg;
-     printf("%d\n", id);
-    
-    int connection_socket_descriptor = accept((*t_data_main).uls[id], NULL, NULL);
-    if (connection_socket_descriptor < 0)
-    {
-        printf(": Błąd przy próbie utworzenia gniazda dla połączenia.\n");
-        exit(1);
-    }
-        /*struct Message m;
-        strncpy(m.text, msg, sizeof(m.text));
-        strncpy(m.sender, "server", sizeof(m.sender));
-        strncpy(m.receiver, "client", sizeof(m.receiver));
-        strncpy(m.date, "10-10-2010", sizeof(m.date));*/
-    write(connection_socket_descriptor, &(*t_data_main).data, sizeof(struct data2send));
-    printf("wyslano lobby do klienta :  \n");
-    close(connection_socket_descriptor);
-    pthread_exit(NULL);
-}
-
-//funkcja obsĹugujÄca poĹÄczenie z nowym klientem
-void handleConnection(int connection_socket_descriptor) {
-    //wynik funkcji tworzÄcej wÄtek
-    int create_result = 0;
-
-    //uchwyt na wÄtek
-    pthread_t thread1[100];
-
-
-    //dane, ktĂłre zostanÄ przekazane do wÄtku
-    struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
-    (*th_data).sfd = connection_socket_descriptor;
-    struct data_lobby d_lobby;
-    d_lobby.main_data = (*th_data);
-
-    char msg[20];      
-    if(read((*th_data).sfd,msg,sizeof(msg))){
-        int id = assignCPort((*th_data).data.users);
-        int port = id + CLIENT_PORT;
-        (*th_data).data.users[id].port = port;
-        strncpy((*th_data).data.users[id].name, msg, sizeof(msg));
-        
-        int conv_port = htonl(port);
-        write((*th_data).sfd, &conv_port, sizeof(conv_port));
-        printf("client: %s chce uzyskać port \n",msg);
-        
-        //send lobby data
-        int i;
-        for (i=0; i<MAX_USERS; i++)
-        {
-            //printf("%d ", (*th_data).data.users[i].port);
-            if((*th_data).data.users[i].port != 0)
-            {
-                
-                create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
-                 //printf("nowy watek\n");
-                if (create_result){
-                printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
-                exit(-1);
-                }
-            }
-        }
-        //printf("\n");
-    }
 }
 
 int createSocket(int port)
@@ -192,6 +120,72 @@ int createSocket(int port)
    }
    return server_socket_descriptor;
 }
+    
+/*struct Message m;
+        strncpy(m.text, msg, sizeof(m.text));
+        strncpy(m.sender, "server", sizeof(m.sender));
+        strncpy(m.receiver, "client", sizeof(m.receiver));
+        strncpy(m.date, "10-10-2010", sizeof(m.date));*/
+//funkcja opisujÄcÄ zachowanie wÄtku - musi przyjmowaÄ argument typu (void *) i zwracaÄ (void *)
+void sendLobbyToClients()
+{
+
+    int i;
+    for(i=0;i<MAX_USERS; i++)
+    {
+        if((*t_data_main).data.users[i].port!=0)
+        {
+            write((*t_data_main).uls[i], &(*t_data_main).data, sizeof(struct data2send));
+            printf("wyslano lobby do klienta :  \n");
+        }
+    }
+}
+
+void *CreateDescriptorsBehavior(void *arg)
+{
+    pthread_detach(pthread_self());
+    int id = (int*) arg;
+    int ssd = createSocket(CLIENT_PORT + id);
+    
+    int csa = accept(ssd, NULL, NULL);
+    if (csa < 0)
+    {
+        printf(": Błąd przy próbie utworzenia gniazda dla połączenia.\n");
+        exit(1);
+    }
+    (*t_data_main).uls[id] = csa;
+    
+    pthread_exit(NULL);
+}
+
+//funkcja obsĹugujÄca poĹÄczenie z nowym klientem
+void handleConnection(int connection_socket_descriptor) {
+    //wynik funkcji tworzÄcej wÄtek
+    int create_result = 0;
+
+    //uchwyt na wÄtek
+
+
+    //dane, ktĂłre zostanÄ przekazane do wÄtku
+    struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
+    (*th_data).sfd = connection_socket_descriptor;
+
+    char msg[20];      
+    if(read((*th_data).sfd,msg,sizeof(msg))){
+        int id = assignCPort((*th_data).data.users);
+        int port = id + CLIENT_PORT;
+        (*th_data).data.users[id].port = port;
+        strncpy((*th_data).data.users[id].name, msg, sizeof(msg));
+        
+        int conv_port = htonl(port);
+        write((*th_data).sfd, &conv_port, sizeof(conv_port));
+        printf("client: %s chce uzyskać port \n",msg);
+        
+        sendLobbyToClients();
+        //printf("\n");
+    }
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -200,12 +194,20 @@ int main(int argc, char* argv[])
     int server_socket_descriptor;
     server_socket_descriptor = createSocket(SERVER_PORT);
     
-    //tworzenie socketow uls
-    int i;
-    for(i=0; i<MAX_USERS; i++)
-    {
-        (*t_data_main).uls[i] = createSocket(CLIENT_PORT + i);
-    }
+    pthread_t thread1[100];
+    
+     //tworzenie socketow uls
+            int i;
+        for (i=0; i<MAX_USERS; i++)
+        {
+                int create_result = pthread_create(&thread1[i], NULL, CreateDescriptorsBehavior, (void*)i);
+                 //printf("nowy watek\n");
+                if (create_result){
+                printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+                exit(-1);
+                }
+        }
+   
     
    while(1)
    {
