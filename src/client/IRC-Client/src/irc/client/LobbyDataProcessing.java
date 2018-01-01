@@ -24,6 +24,7 @@ public class LobbyDataProcessing {
     public static final int ROOMS_LIMIT = 10;
     public static int USER_STRUCT_SIZE = 4+ 20;
     public static int USERS_LIMIT = 100;
+    public static int STRUCT_SIZE = (3 * 4 + 20 + 20) * 10 + (4+ 20) * 100;
     
     public LobbyDataProcessing(byte[] buffer){
         this.buffer = buffer;
