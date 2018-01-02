@@ -32,13 +32,20 @@ public class IRCMessage {
     private int senderBegin = 240;
     private int receiverBegin = 260;
     private int dateBegin = 280;
+    private int dateEnd = 320;
     
     private String text="";
     private String sender="";
     private String receiver="";
     private String date="";
-
-  public IRCMessage(byte[] bytes) {
+    
+    public IRCMessage(String text, String sender, String receiver, String date){
+        this.text = text;
+        this.sender = sender;
+        this.receiver = receiver;
+        this.date = date;
+    }
+     public IRCMessage(byte[] bytes) {
         String message;
         StandardCharsets.UTF_8.name();
         try {
@@ -94,6 +101,28 @@ public class IRCMessage {
 
     public void setDate(String date) {
         this.date = date;
+    }
+    
+    public byte[] getByte(){
+//        String s = text + sender + receiver + date;
+        byte[] b = new byte[320];
+        
+        try {
+                while(text.length()<240)
+                    text += " ";
+                while(sender.length()<20)
+                    sender += " ";
+                while(receiver.length()<20)
+                    receiver += " ";
+                while(date.length()<40)
+                    date += " ";
+                String s = text + sender + receiver + date;
+                b = s.getBytes("UTF-8");
+            } 
+        catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(IRCMessage.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return b;
     }
   
 }

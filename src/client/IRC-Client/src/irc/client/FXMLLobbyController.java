@@ -72,8 +72,10 @@ public class FXMLLobbyController implements Initializable {
                 try {
                     Socket serverSocket = new Socket("localhost", irc.getClientInfo().getMsgPort());
                     os = serverSocket.getOutputStream();
-                    String msg = "wiadomosc proba";
-                    os.write(msg.getBytes("UTF-8"));
+                    String m = "wiadomosc proba";
+                    IRCMessage msg = new IRCMessage("Wiadomosc", irc.getClientInfo().getNickname(),
+                        irc.getClientInfo().getNickname(), "data");
+                    os.write(msg.getByte());
                 } catch (IOException ex) {
                     Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
                 }
