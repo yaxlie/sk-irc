@@ -112,7 +112,8 @@ void *ClientMsgBehavior(void *arg)
         {
             printf("[server]: (%d, %s) - Oczekiwanie na wiadomość...\n", id, (*t_data_main).data.users[id].name);
             read(connection_socket_descriptor,&ms,sizeof(ms));
-
+            printf("[server]: (%d, %s) - Odebrano wiadomość, przetwarzanie...\n", id, (*t_data_main).data.users[id].name);
+            
             int ii = 0;
             while(ii < MAX_USERS){
                 if(strncmp((*t_data_main).data.users[ii].name,ms.receiver,sizeof(ms.receiver)) == 0){
@@ -163,7 +164,7 @@ void handleConnection(int connection_socket_descriptor) {
 
     char msg[20];      
     if(read((*th_data).sfd,msg,sizeof(msg))){
-        printf("[server]: Prośba o przydzielenie portu...\n");
+        printf("[server]: (?, %s) - Prośba o przydzielenie portu...\n", msg);
         int id = assignCPort((*th_data).data.users);
         int port = id + CLIENT_PORT;
         (*th_data).data.users[id].port = port;

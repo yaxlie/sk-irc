@@ -7,12 +7,14 @@ package irc.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -62,6 +64,22 @@ public class FXMLLobbyController implements Initializable {
 //            Logger.getLogger(FXMLLobbyController.class.getName()).log(Level.SEVERE, null, ex);
 //        }
 
+        joinButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                System.out.println("Próba wysyłania");
+                OutputStream os = null;
+                try {
+                    Socket serverSocket = new Socket("localhost", irc.getClientInfo().getMsgPort());
+                    os = serverSocket.getOutputStream();
+                    String msg = "wiadomosc proba";
+                    os.write(msg.getBytes("UTF-8"));
+                } catch (IOException ex) {
+                    Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+                
         LobbyListener mr = new LobbyListener(true);
         Thread thread = new Thread(mr);
         thread.start();
