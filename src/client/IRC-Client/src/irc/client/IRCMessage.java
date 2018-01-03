@@ -18,8 +18,8 @@ package irc.client;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,18 +28,24 @@ import java.util.logging.Logger;
  * @author marcin
  */
 public class IRCMessage {
-    private int textBegin = 0;
-    private int senderBegin = 240;
-    private int receiverBegin = 260;
-    private int dateBegin = 280;
-    private int dateEnd = 320;
+    public static final int TEXT_SIZE = 240;
+    public static final int RECEIVER_SIZE = 20;
+    public static final int SENDER_SIZE = 20;
+    public static final int DATE_SIZE = 40;
+    private int textBegin = 4;
+    private int senderBegin = 244;
+    private int receiverBegin = 264;
+    private int dateBegin = 284;
+    private int dateEnd = 324;
     
+    private int mType = 0;
     private String text="";
     private String sender="";
     private String receiver="";
     private String date="";
     
-    public IRCMessage(String text, String sender, String receiver, String date){
+    public IRCMessage(int mType, String text, String sender, String receiver, String date){
+        this.mType = mType;
         this.text = text;
         this.sender = sender;
         this.receiver = receiver;
@@ -49,7 +55,8 @@ public class IRCMessage {
         String message;
         StandardCharsets.UTF_8.name();
         try {
-            message = new String(bytes, "UTF-8");
+            message = new String(bytes, "UTF-8");   
+            mType = ByteBuffer.wrap(bytes).getInt();
             text = message.substring(textBegin, senderBegin);
             sender = message.substring(senderBegin, receiverBegin);
             receiver = message.substring(receiverBegin, dateBegin);
@@ -105,24 +112,52 @@ public class IRCMessage {
     
     public byte[] getByte(){
 //        String s = text + sender + receiver + date;
-        byte[] b = new byte[320];
+        byte[] b = new byte[324];
         
         try {
-                while(text.length()<240)
+                while(text.length()<239)
                     text += " ";
-                while(sender.length()<20)
+                text+='\0';
+                while(sender.length()<19)
                     sender += " ";
-                while(receiver.length()<20)
+                sender+='\0';
+                while(receiver.length()<19)
                     receiver += " ";
-                while(date.length()<40)
+                receiver+='\0';
+                while(date.length()<39)
                     date += " ";
+                date+='\0';
+                
                 String s = text + sender + receiver + date;
-                b = s.getBytes("UTF-8");
+                byte[] bytes = toBytes(mType);
+//                System.out.println(Integer.toString(ByteBuffer.wrap(bytes).getInt()));
+//                b = s.getBytes("UTF-8");
+                System.arraycopy(bytes, 0, b, 0, 4);
+                System.arraycopy(s.getBytes("UTF-8"), 0, b, 4, 320);
+//                System.out.println(new String(b));
             } 
         catch (UnsupportedEncodingException ex) {
             Logger.getLogger(IRCMessage.class.getName()).log(Level.SEVERE, null, ex);
         }
         return b;
     }
-  
+
+    public int getmType() {
+        return mType;
+    }
+
+    public void setmType(int mType) {
+        this.mType = mType;
+    }
+    byte[] toBytes(int i)
+    {
+      byte[] result = new byte[4];
+
+      result[0] = (byte) (i >> 24);
+      result[1] = (byte) (i >> 16);
+      result[2] = (byte) (i >> 8);
+      result[3] = (byte) (i /*>> 0*/);
+
+      return result;
+    }
 }

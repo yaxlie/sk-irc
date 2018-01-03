@@ -34,6 +34,8 @@ struct Room
 //struktura wiadomosci
 struct Message
 {
+    //do konfiguracji/przelaczania
+    int config;
     char text[240];
     char sender[20];
     char receiver[20];
@@ -95,8 +97,8 @@ void *ClientMsgBehavior(void *arg)
     
     printf("[server]: (%d, %s) - Stworzono nowy wątek do przetwarzania wiadomości. Czekanie na połączenie...\n", id, (*t_data_main).data.users[id].name);
     
-	struct Message ms;
-        char m[320];
+	struct Message msg;
+        char m[sizeof(struct Message)];
         /*struct Message m;
         strncpy(m.text, msg, sizeof(m.text));
         strncpy(m.sender, "server", sizeof(m.sender));
@@ -112,41 +114,35 @@ void *ClientMsgBehavior(void *arg)
             }
             printf("[server]: (%d, %s) - Nawiązano połączenie dla przetwarzania wiadomości!\n", id, (*t_data_main).data.users[id].name);
             printf("[server]: (%d, %s) - Oczekiwanie na wiadomość...\n", id, (*t_data_main).data.users[id].name);
-            read(connection_socket_descriptor,&ms,sizeof(ms));
+            read(connection_socket_descriptor,&msg,sizeof(msg));
+            printf("%d \n", sizeof(msg));
+            close(connection_socket_descriptor);
+            //TODO msg.config JEST ZLE CZYTANY (ZLA KONWERSJA Z JAVY?)
             
-            //inaczej lancuch byl od inx do konca pliku //TODO uproscic (cos nie tak z ostatnim znakiem)
-            struct Message msg;
             int i;
-            for (i=0; i<239; i++)
-            {
-                msg.text[i] = ms.text[i];
-            }
-            for (i=0; i<19; i++)
-            {
-                msg.sender[i] = ms.sender[i];
-            }
-            for (i=0; i<19; i++)
-            {
-                msg.receiver[i] = ms.receiver[i];
-            }
-            for (i=0; i<39; i++)
-            {
-                msg.date[i] = ms.date[i];
-            }
             
             printf("[server]: (%d, %s) - Odebrano wiadomość, przetwarzanie...\n", id, (*t_data_main).data.users[id].name);
-            printf("[server]: %s\n",msg.receiver);
+            //printf("[server]: %d.\n%s.\n%s.\n%s.\n%s.\n",msg.config, msg.text, msg.sender, msg.receiver, msg.date);
             int ii = 0;
-            //TODO wysylanie wiadomosci musi być w osobnym watku
             while(ii < MAX_USERS){
-                if(strncmp((*t_data_main).data.users[ii].name,ms.receiver,sizeof(ms.receiver)) == 0){
-                    write((*t_data_main).uls[ii],&ms, sizeof(ms));
-                    printf("[server]: (%d, %s) - Wysłano wiadomość do (%d, %s)!\n", id, (*t_data_main).data.users[id].name, ii, (*t_data_main).data.users[ii].name);
+                //printf("%s.\n%s.\n",(*t_data_main).data.users[ii].name, msg.receiver);
+                //TODO TO MUSI BYC W OSOBNYM WATKU, INACZEJ BEDZIE SIE ZWIESZAC JESLI KTORYS CLIENT NIE ODBBIERZE WIADOMOSCI
+                if(strncmp((*t_data_main).data.users[ii].name,msg.receiver,sizeof((*t_data_main).data.users[ii])) == 0){
+                    int csd = accept((*t_data_main).ums[ii], NULL, NULL);
+                    if (connection_socket_descriptor < 0)
+                    {
+                        printf(": Błąd przy próbie utworzenia gniazda dla połączenia.\n");
+                        exit(1);
+                    }
+                    printf("[server]: (%d, %s) - Wysłanie wiadomości do (%d, %s)!\n", id, (*t_data_main).data.users[id].name, ii, (*t_data_main).data.users[ii].name);
+                    write(csd,&msg, sizeof(msg));
+                    close(csd);
+                    printf("[server]: (%d, %s) - (%d, %s) Odebrał wiadomość!\n", id, (*t_data_main).data.users[id].name, ii, (*t_data_main).data.users[ii].name);
+                    
                     break;
             }
                 ii = ii + 1;
             }
-           close(connection_socket_descriptor);
         }
     
     pthread_exit(NULL);

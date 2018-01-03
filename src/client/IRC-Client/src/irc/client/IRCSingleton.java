@@ -74,6 +74,9 @@ public class IRCSingleton {
        try {
            os = serverSocket.getOutputStream();
            String msg = clientInfo.getNickname();
+           while (msg.length()<IRCMessage.SENDER_SIZE-1)
+               msg+=" ";
+           msg+='\0';
            os.write(msg.getBytes("UTF-8"));
        } catch (IOException ex) {
            Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
