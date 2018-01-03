@@ -17,8 +17,13 @@ import javafx.stage.Stage;
  */
 public class IRCClient extends Application {
     
+    private IRCSingleton irc = IRCSingleton.getInstance();
+    
     @Override
     public void start(Stage stage) throws Exception {
+        
+        irc.clientPortRequest();
+        
         Parent root = FXMLLoader.load(getClass().getResource("FXMLLobby.fxml"));
         
         Scene scene = new Scene(root);

@@ -1,4 +1,4 @@
-#include <sys/types.h>
+﻿#include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -16,6 +16,7 @@
 #define SERVER_PORT 12345
 #define MAX_USERS 100
 #define CLIENT_PORT 2000
+#define CLIENT_PORT_MSG 3000
 #define QUEUE_SIZE 5
 
 
@@ -23,10 +24,9 @@ int client_port = CLIENT_PORT;
 //struktura pokoju
 struct Room
 {
-    int id;
+    int id; // zmiana w strukt
     char name[20];
     char password[20];
-    int port;
     int limit; //limit uzytkownikow
     int users;  //liczba obecnych w pokoju uzytkownikow
 };
@@ -34,10 +34,12 @@ struct Room
 //struktura wiadomosci
 struct Message
 {
+	int type; // zmiana w typie  struct
     char text[240];
     char sender[20];
     char receiver[20];
     char date[40];
+	struct User usersList[200];//wewnetrzna informacja do identyfikowania userow
 };
 
 //struktura uzytkownikow
@@ -47,56 +49,33 @@ struct User
     char name[20];
 };
 
-
-//struktura zawierajÄca dane, ktĂłre zostanÄ przekazane do wÄtku
-struct thread_data_t
+struct data2send
 {
-    int sfd;
     struct Room listaPokojow[10];
     struct User users[100];
 };
 
-struct thread_data_t *t_data_main; 
-
-
-
-
-//TODO wysylanie danych do wszystkich klientow, cos jak to ponizej :
-void sendDataToClients(struct thread_data_t th_data)
+//struktura zawierajÄ…ca dane, ktĂłre zostanÄ… przekazane do wÄ…tku
+struct thread_data_t
 {
-    int i;
-    for(i=0;i<MAX_USERS;i++)
-    {
-        if(th_data.users[i].port != 0)
-        {
-            write(th_data.users[i].port, &th_data, sizeof(struct thread_data_t));
-            printf("Wyslano główną strukturę do  : %d \n",th_data.users[i].port);
-        }
-    }
-}
-
-//funkcja opisujÄcÄ zachowanie wÄtku - musi przyjmowaÄ argument typu (void *) i zwracaÄ (void *)
-void *ThreadBehavior(void *t_data)
-{
+    //socket prosby o przydzielenie portu
+    int sfd;
     
-    pthread_detach(pthread_self());
-    struct thread_data_t *th_data = (struct thread_data_t*)t_data;
-    //dostÄp do pĂłl struktury: (*th_data).pole
-    char msg[240];
-    while(1){
-        /*struct Message m;
-        strncpy(m.text, msg, sizeof(m.text));
-        strncpy(m.sender, "server", sizeof(m.sender));
-        strncpy(m.receiver, "client", sizeof(m.receiver));
-        strncpy(m.date, "10-10-2010", sizeof(m.date));*/
-        
+    //users lobby sockets
+    int uls[100];
+    //users msg sockets
+    int ums[100];
+    struct data2send data;
+};
 
-    }
-    pthread_exit(NULL);
-}
+struct data_lobby
+{
+    struct thread_data_t main_data;
+    int c_id;
+};
 
 
-
+struct thread_data_t *t_data_main; 
 
 
 int assignCPort(struct User u[])
@@ -109,47 +88,197 @@ int assignCPort(struct User u[])
     }
     return i;
 }
+
+  //funkcja opisujÄ…cÄ… zachowanie wÄ…tku - musi przyjmowaÄ‡ argument typu (void *) i zwracaÄ‡ (void *)
+void *SendLobbyBehavior(void *arg)
+{
+    pthread_detach(pthread_self());
+    int id = (int*) arg;
+     //printf("%d\n", id);
     
-
-void CreateRoom(int connection_socket_descriptor) {
-    //wynik funkcji tworzÄcej wÄtek
-    int create_result = 0;
-
-    //uchwyt na wÄtek
-    pthread_t thread1;
-
-
-    //dane, ktĂłre zostanÄ przekazane do wÄtku
-    struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
-    //struct thread_data_t *th_data = malloc(sizeof(struct thread_data_t));
-    (*th_data).sfd = connection_socket_descriptor;
-
-    create_result = pthread_create(&thread1, NULL, ThreadBehavior, (void *)th_data);
-    if (create_result){
-       printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
-       exit(-1);
+    int connection_socket_descriptor = accept((*t_data_main).uls[id], NULL, NULL);
+    if (connection_socket_descriptor < 0)
+    {
+        printf(": Błąd przy próbie utworzenia gniazda dla połączenia.\n");
+        exit(1);
     }
-
-    char msg[20];      
-	printf("dd\n");
-    if(read((*th_data).sfd,msg,sizeof(msg))){
-	printf("ddddsdsdsdsd \n");
-    }
+    write(connection_socket_descriptor, &(*t_data_main).data, sizeof(struct data2send));
+    printf("[server]: (%d, %s) - Wyslano lobby do klienta.\n", id, (*t_data_main).data.users[id].name);
+    pthread_exit(NULL);
 }
 
 
+void *ClientMsgBehavior(void *arg)
+{
+    pthread_detach(pthread_self());
+    int id = (int*) arg;
+    //printf("%d\n", id);
+    
+    printf("[server]: (%d, %s) - Stworzono nowy wątek do przetwarzania wiadomości. Czekanie na połączenie...\n", id, (*t_data_main).data.users[id].name);
+    
+	struct Message ms;
+        char m[320];
+        /*struct Message m;
+        strncpy(m.text, msg, sizeof(m.text));
+        strncpy(m.sender, "server", sizeof(m.sender));
+        strncpy(m.receiver, "client", sizeof(m.receiver));
+        strncpy(m.date, "10-10-2010", sizeof(m.date));*/
+        while(1)
+        {
+            int connection_socket_descriptor = accept((*t_data_main).ums[id], NULL, NULL);
+            if (connection_socket_descriptor < 0)
+            {
+                printf(": Błąd przy próbie utworzenia gniazda dla połączenia.\n");
+                exit(1);
+            }
+            printf("[server]: (%d, %s) - Nawiązano połączenie dla przetwarzania wiadomości!\n", id, (*t_data_main).data.users[id].name);
+            printf("[server]: (%d, %s) - Oczekiwanie na wiadomość...\n", id, (*t_data_main).data.users[id].name);
+            read(connection_socket_descriptor,&ms,sizeof(ms));
+            
+            //inaczej lancuch byl od inx do konca pliku //TODO uproscic (cos nie tak z ostatnim znakiem)
+            struct Message msg;
+            int i;
+            for (i=0; i<239; i++)
+            {
+                msg.text[i] = ms.text[i];
+            }
+            for (i=0; i<19; i++)
+            {
+                msg.sender[i] = ms.sender[i];
+            }
+            for (i=0; i<19; i++)
+            {
+                msg.receiver[i] = ms.receiver[i];
+            }
+            for (i=0; i<39; i++)
+            {
+                msg.date[i] = ms.date[i];
+            }
+            msg.type = ms.type;
+            printf("[server]: (%d, %s) - Odebrano wiadomość, przetwarzanie...\n", id, (*t_data_main).data.users[id].name);
+            printf("[server]: %s\n",msg.receiver);
+            int ii = 0;
+            //TODO wysylanie wiadomosci musi być w osobnym watku
+			if(msg.type == 1){
+				while(ii < MAX_USERS){
+					if(strncmp((*t_data_main).data.users[ii].name,ms.receiver,sizeof(ms.receiver)) == 0){
+						write((*t_data_main).uls[ii],&ms, sizeof(ms));
+						printf("[server]: (%d, %s) - Wysłano wiadomość do (%d, %s)!\n", id, (*t_data_main).data.users[id].name, ii, (*t_data_main).data.users[ii].name);
+						break;
+					}
+					ii = ii + 1;
+				}
+				//tworzenie nowego pokoju wiem ze chceszmiec pokoje na osobnych watkach... 
+			}else if(msg.type == 2){
+				int check = 0;
+				while(ii < MAX_ROOM){
+					if((*t_data_main).listaPokojow[ii].id == 0){
+						check = 1;
+						break;
+					}
+					ii = ii + 1;
+				}
+				if(check == 1){
+					(*t_data_main).listaPokojow[ii].id = CLIENT_PORT + ii;
+					strncpy((*t_data_main).listaPokojow[ii].name, msg.receiver, sizeof(ms.receiver));
+					(*t_data_main).listaPokojow[ii].limit = 20;
+					(*t_data_main).listaPokojow[ii].users = 0;
+					(*t_data_main).listaPokojow[ii].password = "";
+					int iit = 0;
+					while(iit < (*t_data_main).listaPokojow[ii].limit){
+						strncpy((*t_data_main).listaPokojow[ii].usersList[iit].name ,"",sizeof(""))
+					}
+					//send to everyone new List t_data_main
+					int i;
+					for (i=0; i<MAX_USERS; i++)
+					{
+						//printf("%d ", (*th_data).data.users[i].port);
+						if((*th_data).data.users[i].port != 0)
+						{
+							
+							create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
+							 //printf("nowy watek\n");
+							if (create_result){
+							printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+							exit(-1);
+							}
+						}
+					}
+					
+					
+					}else{
+					printf("nie ma wolnego pokoju nie mozna utworzyc nowego");
+				}
+			}
+           close(connection_socket_descriptor);
+        }
+    
+    pthread_exit(NULL);
+}
 
-//Funkcja ktora otwiera nowy port
 
-int OpenNewSocket(int port){
+//funkcja obsĹ‚ugujÄ…ca poĹ‚Ä…czenie z nowym klientem
+void handleConnection(int connection_socket_descriptor) {
+    //wynik funkcji tworzÄ…cej wÄ…tek
+    int create_result = 0;
+
+    //uchwyt na wÄ…tek
+    pthread_t thread1[100];
+    pthread_t thread2;
+
+
+    //dane, ktĂłre zostanÄ… przekazane do wÄ…tku
+    struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
+    (*th_data).sfd = connection_socket_descriptor;
+    struct data_lobby d_lobby;
+    d_lobby.main_data = (*th_data);
+
+    char msg[20];      
+    if(read((*th_data).sfd,msg,sizeof(msg))){
+        printf("[server]: (?, %s) - Prośba o przydzielenie portu...\n", msg);
+        int id = assignCPort((*th_data).data.users);
+        int port = id + CLIENT_PORT;
+        (*th_data).data.users[id].port = port;
+        strncpy((*th_data).data.users[id].name, msg, sizeof(msg));
+        
+        int conv_port = htonl(port);
+        write((*th_data).sfd, &conv_port, sizeof(conv_port));
+        printf("[server]: (?, %s) - Przydzielono port %d dla użytkwnika!\n", msg, port);
+        
+        create_result = pthread_create(&thread2, NULL, ClientMsgBehavior, (void*)id);
+        if (create_result){
+        printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
+        exit(-1);
+        }
+        
+        //send lobby data
+        int i;
+        for (i=0; i<MAX_USERS; i++)
+        {
+            //printf("%d ", (*th_data).data.users[i].port);
+            if((*th_data).data.users[i].port != 0)
+            {
+                
+                create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
+                 //printf("nowy watek\n");
+                if (create_result){
+                printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+                exit(-1);
+                }
+            }
+        }
+        //printf("\n");
+    }
+}
+
+int createSocket(int port)
+{
    int server_socket_descriptor;
    int connection_socket_descriptor;
    int bind_result;
    int listen_result;
    char reuse_addr_val = 1;
    struct sockaddr_in server_address;
-   
-   t_data_main = malloc(sizeof(struct thread_data_t));
 
    //inicjalizacja gniazda serwera
    memset(&server_address, 0, sizeof(struct sockaddr));
@@ -160,123 +289,52 @@ int OpenNewSocket(int port){
    server_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
    if (server_socket_descriptor < 0)
    {
-       fprintf(stderr, "Błąd przy próbie utworzenia gniazda..\n");
-       return 0;
+       fprintf(stderr, ": Błąd przy próbie utworzenia gniazda..\n");
+       exit(1);
    }
    setsockopt(server_socket_descriptor, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse_addr_val, sizeof(reuse_addr_val));
 
    bind_result = bind(server_socket_descriptor, (struct sockaddr*)&server_address, sizeof(struct sockaddr));
    if (bind_result < 0)
    {
-       fprintf(stderr, "Błąd przy próbie dowiązania adresu IP i numeru portu do gniazda.\n");
-       return 0;
+       fprintf(stderr, ": Błąd przy próbie dowiązania adresu IP i numeru portu do gniazda.\n");
+       exit(1);
    }
 
    listen_result = listen(server_socket_descriptor, QUEUE_SIZE);
    if (listen_result < 0) {
-       fprintf(stderr, "Błąd przy próbie ustawienia wielkości kolejki.\n");
-       return 0;
+       fprintf(stderr, ": Błąd przy próbie ustawienia wielkości kolejki.\n");
+       exit(1);
    }
-
-   while(1)
-   {
-       connection_socket_descriptor = accept(server_socket_descriptor, NULL, NULL);
-       if (connection_socket_descriptor < 0)
-       {
-           fprintf(stderr, "Błąd przy próbie utworzenia gniazda dla połączenia.\n");
-           return 0;
-       }
-    CreateRoom(server_socket_descriptor);
-   }
+   return server_socket_descriptor;
 }
-
-
-
-
-
-
-
-//funkcja obsĹugujÄca poĹÄczenie z nowym klientem
-void handleConnection(int connection_socket_descriptor) {
-    //wynik funkcji tworzÄcej wÄtek
-    int create_result = 0;
-
-    //uchwyt na wÄtek
-    pthread_t thread1;
-
-
-    //dane, ktĂłre zostanÄ przekazane do wÄtku
-    struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
-    //struct thread_data_t *th_data = malloc(sizeof(struct thread_data_t));
-    (*th_data).sfd = connection_socket_descriptor;
-
-    create_result = pthread_create(&thread1, NULL, ThreadBehavior, (void *)th_data);
-    if (create_result){
-       printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
-       exit(-1);
-    }
-
-    char msg[20];      
-    if(read((*th_data).sfd,msg,sizeof(msg))){
-        int id = assignCPort((*th_data).users);
-        int port = id + CLIENT_PORT;
-        (*th_data).users[id].port = port;
-        strncpy((*th_data).users[id].name, msg, sizeof(msg));
-        
-        int conv_port = htonl(port);
-        write((*th_data).sfd, &conv_port, sizeof(conv_port));
-        printf("client: %s chce uzyskać port \n",msg);
-        sendDataToClients(*th_data);
-		printf("Server otwiera nowy port na ktorym bedzie nasluchiwac\n");
-		if(fork() == 0){
-		}else{
-			OpenNewSocket(port);
-		}
-	}
-}
-
 
 int main(int argc, char* argv[])
 {
-   int server_socket_descriptor;
-   int connection_socket_descriptor;
-   int bind_result;
-   int listen_result;
-   char reuse_addr_val = 1;
-   struct sockaddr_in server_address;
-   
-   t_data_main = malloc(sizeof(struct thread_data_t));
-
-   //inicjalizacja gniazda serwera
-   memset(&server_address, 0, sizeof(struct sockaddr));
-   server_address.sin_family = AF_INET;
-   server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-   server_address.sin_port = htons(SERVER_PORT);
-
-   server_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
-   if (server_socket_descriptor < 0)
-   {
-       fprintf(stderr, "%s: Błąd przy próbie utworzenia gniazda..\n", argv[0]);
-       exit(1);
-   }
-   setsockopt(server_socket_descriptor, SOL_SOCKET, SO_REUSEADDR, (char*)&reuse_addr_val, sizeof(reuse_addr_val));
-
-   bind_result = bind(server_socket_descriptor, (struct sockaddr*)&server_address, sizeof(struct sockaddr));
-   if (bind_result < 0)
-   {
-       fprintf(stderr, "%s: Błąd przy próbie dowiązania adresu IP i numeru portu do gniazda.\n", argv[0]);
-       exit(1);
-   }
-
-   listen_result = listen(server_socket_descriptor, QUEUE_SIZE);
-   if (listen_result < 0) {
-       fprintf(stderr, "%s: Błąd przy próbie ustawienia wielkości kolejki.\n", argv[0]);
-       exit(1);
-   }
-
+    printf("\n[server]: Witaj w najlepszym IRCu na Twoim komputerze!\n\n");
+    t_data_main = malloc(sizeof(struct thread_data_t));
+    int connection_socket_descriptor;
+    int server_socket_descriptor;
+    server_socket_descriptor = createSocket(SERVER_PORT);
+    
+    //tworzenie socketow uls do lobby
+    printf("[server]: (init) - Tworzenie deskryptorów serwera dla lobby...\n");
+    int i;
+    for(i=0; i<MAX_USERS; i++)
+    {
+        (*t_data_main).uls[i] = createSocket(CLIENT_PORT + i);
+    }
+    
+        //tworzenie socketow uls do wysylania wiad
+    printf("[server]: (init) - Tworzenie deskryptorów serwera dla wiadomości...\n");
+    for(i=0; i<MAX_USERS; i++)
+    {
+        (*t_data_main).ums[i] = createSocket(CLIENT_PORT_MSG + i);
+    }
+    printf("[server]: (OK) - Czekanie na nowego użytkownika...\n");
    while(1)
    {
-       connection_socket_descriptor = accept(server_socket_descriptor, NULL, NULL);
+        connection_socket_descriptor = accept(server_socket_descriptor, NULL, NULL);
        if (connection_socket_descriptor < 0)
        {
            fprintf(stderr, "%s: Błąd przy próbie utworzenia gniazda dla połączenia.\n", argv[0]);
@@ -286,7 +344,7 @@ int main(int argc, char* argv[])
        handleConnection(connection_socket_descriptor);
    }
 
-   close(server_socket_descriptor);
+   close(connection_socket_descriptor);
    return(0);
+   
 }
-

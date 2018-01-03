@@ -68,10 +68,10 @@ void handleConnection(int connection_socket_descriptor) {
     }
 
     //TODO (przy zadaniu 1) odbieranie -> wyĹwietlanie albo klawiatura -> wysyĹanie
-    struct Message m;
+    char m[128];
     while(1){
-    read(t_data.sfd,&m,sizeof(struct Message));
-    printf("%s: %s",m.sender, m.text);
+    read(t_data.sfd,&m,sizeof(m));
+    printf("%s\n",m);
     }
 }
 
