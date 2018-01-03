@@ -13,6 +13,7 @@ import java.util.ArrayList;
  */
 public class LobbyInfo {
     private ArrayList<User>users = new ArrayList<>();
+    private ArrayList<Room>rooms = new ArrayList<>();
 
     public ArrayList<User> getUsers() {
         return users;
@@ -21,11 +22,29 @@ public class LobbyInfo {
     public void setUsers(ArrayList<User> users) {
         this.users = users;
     }
+
+    public ArrayList<Room> getRooms() {
+        return rooms;
+    }
+
+    public void setRooms(ArrayList<Room> rooms) {
+        this.rooms = rooms;
+    }
+    
+    
     
     public ArrayList<String> getUserNames(){
         ArrayList<String> list = new ArrayList<>();
         for (User u : users){
             list.add(u.getName());
+        }
+        return list;
+    }
+    
+    public ArrayList<String> getRoomNames(){
+        ArrayList<String> list = new ArrayList<>();
+        for (Room r : rooms){
+            list.add(r.getName() + "   " + r.getUsers().size() + "/" + Integer.toString(r.getrSize()));
         }
         return list;
     }

@@ -15,20 +15,28 @@
 
 #define SERVER_PORT 12345
 #define MAX_USERS 100
+#define MAX_ROOMS 10
 #define CLIENT_PORT 2000
 #define CLIENT_PORT_MSG 3000
 #define QUEUE_SIZE 5
 
 
 int client_port = CLIENT_PORT;
+
+//struktura uzytkownikow
+struct User
+{
+    int port;
+    char name[20];
+};
+
 //struktura pokoju
 struct Room
 {
     int id;
     char name[20];
     char password[20];
-    int limit; //limit uzytkownikow
-    int users;  //liczba obecnych w pokoju uzytkownikow
+    struct User users[10];
 };
 
 //struktura wiadomosci
@@ -42,16 +50,10 @@ struct Message
     char date[40];
 };
 
-//struktura uzytkownikow
-struct User
-{
-    int port;
-    char name[20];
-};
 
 struct data2send
 {
-    struct Room listaPokojow[10];
+    struct Room listaPokojow[MAX_ROOMS];
     struct User users[100];
 };
 
@@ -272,6 +274,13 @@ int main(int argc, char* argv[])
     for(i=0; i<MAX_USERS; i++)
     {
         (*t_data_main).uls[i] = createSocket(CLIENT_PORT + i);
+    }
+    
+    printf("[server]: (init) - Tworzenie pokojów...\n");
+    for(i=0; i<MAX_ROOMS; i++)
+    {
+        strncpy((*t_data_main).data.listaPokojow[i].name, "Pokój", 20);
+        printf("%s. \n", (*t_data_main).data.listaPokojow[i].name);
     }
     
         //tworzenie socketow uls do wysylania wiad

@@ -90,5 +90,10 @@ public class FXMLLobbyController implements Initializable {
     public ListView getUserList() {
         return userList;
     }
+
+    public ListView getRoomList() {
+        return roomList;
+    }
+    
     
 }
