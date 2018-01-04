@@ -24,7 +24,7 @@ int client_port = CLIENT_PORT;
 //struktura pokoju
 struct Room
 {
-    int id; // zmiana w strukt
+    int id;
     char name[20];
     char password[20];
     int limit; //limit uzytkownikow
@@ -34,12 +34,11 @@ struct Room
 //struktura wiadomosci
 struct Message
 {
-	int type; // zmiana w typie  struct
+	int type;
     char text[240];
     char sender[20];
     char receiver[20];
     char date[40];
-	struct User usersList[200];//wewnetrzna informacja do identyfikowania userow
 };
 
 //struktura uzytkownikow
@@ -89,24 +88,20 @@ int assignCPort(struct User u[])
     return i;
 }
 
-  //funkcja opisujÄ…cÄ… zachowanie wÄ…tku - musi przyjmowaÄ‡ argument typu (void *) i zwracaÄ‡ (void *)
-void *SendLobbyBehavior(void *arg)
-{
-    pthread_detach(pthread_self());
-    int id = (int*) arg;
-     //printf("%d\n", id);
-    
-    int connection_socket_descriptor = accept((*t_data_main).uls[id], NULL, NULL);
-    if (connection_socket_descriptor < 0)
-    {
-        printf(": Błąd przy próbie utworzenia gniazda dla połączenia.\n");
-        exit(1);
-    }
-    write(connection_socket_descriptor, &(*t_data_main).data, sizeof(struct data2send));
-    printf("[server]: (%d, %s) - Wyslano lobby do klienta.\n", id, (*t_data_main).data.users[id].name);
-    pthread_exit(NULL);
+void *ClientMsgSend(void arg*){
+	printf("Utworzono nowy watek");
+	pthread_detach(pthread_self());
+	struct Message ms = (struct Message*) arg;
+	int ii = 0;
+	while(ii < MAX_USERS){
+		if(strncmp((*t_data_main).data.users[ii].name,ms.receiver,sizeof(ms.receiver)) == 0){
+			write((*t_data_main).uls[ii],&ms, sizeof(ms));
+			printf("[server]: (%d, %s) - Wysłano wiadomość do (%d, %s)!\n", id, (*t_data_main).data.users[id].name, ii, (*t_data_main).data.users[ii].name);
+			break;
+		}
+		ii = ii + 1;
+	}
 }
-
 
 void *ClientMsgBehavior(void *arg)
 {
@@ -115,7 +110,7 @@ void *ClientMsgBehavior(void *arg)
     //printf("%d\n", id);
     
     printf("[server]: (%d, %s) - Stworzono nowy wątek do przetwarzania wiadomości. Czekanie na połączenie...\n", id, (*t_data_main).data.users[id].name);
-    
+    pthread_t threadm;
 	struct Message ms;
         char m[320];
         /*struct Message m;
@@ -154,61 +149,23 @@ void *ClientMsgBehavior(void *arg)
             {
                 msg.date[i] = ms.date[i];
             }
-            msg.type = ms.type;
+            
             printf("[server]: (%d, %s) - Odebrano wiadomość, przetwarzanie...\n", id, (*t_data_main).data.users[id].name);
             printf("[server]: %s\n",msg.receiver);
             int ii = 0;
             //TODO wysylanie wiadomosci musi być w osobnym watku
+			//chyba done
 			if(msg.type == 1){
-				while(ii < MAX_USERS){
-					if(strncmp((*t_data_main).data.users[ii].name,ms.receiver,sizeof(ms.receiver)) == 0){
-						write((*t_data_main).uls[ii],&ms, sizeof(ms));
-						printf("[server]: (%d, %s) - Wysłano wiadomość do (%d, %s)!\n", id, (*t_data_main).data.users[id].name, ii, (*t_data_main).data.users[ii].name);
-						break;
-					}
-					ii = ii + 1;
-				}
-				//tworzenie nowego pokoju wiem ze chceszmiec pokoje na osobnych watkach... 
+			create_result = pthread_create(&threadm, NULL, ClientMsgSend, (void*)msg);
+			 //printf("nowy watek\n");
+			if (create_result){
+			printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+			exit(-1);
+			}
 			}else if(msg.type == 2){
-				int check = 0;
-				while(ii < MAX_ROOM){
-					if((*t_data_main).listaPokojow[ii].id == 0){
-						check = 1;
-						break;
-					}
-					ii = ii + 1;
-				}
-				if(check == 1){
-					(*t_data_main).listaPokojow[ii].id = CLIENT_PORT + ii;
-					strncpy((*t_data_main).listaPokojow[ii].name, msg.receiver, sizeof(ms.receiver));
-					(*t_data_main).listaPokojow[ii].limit = 20;
-					(*t_data_main).listaPokojow[ii].users = 0;
-					(*t_data_main).listaPokojow[ii].password = "";
-					int iit = 0;
-					while(iit < (*t_data_main).listaPokojow[ii].limit){
-						strncpy((*t_data_main).listaPokojow[ii].usersList[iit].name ,"",sizeof(""))
-					}
-					//send to everyone new List t_data_main
-					int i;
-					for (i=0; i<MAX_USERS; i++)
-					{
-						//printf("%d ", (*th_data).data.users[i].port);
-						if((*th_data).data.users[i].port != 0)
-						{
-							
-							create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
-							 //printf("nowy watek\n");
-							if (create_result){
-							printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
-							exit(-1);
-							}
-						}
-					}
-					
-					
-					}else{
-					printf("nie ma wolnego pokoju nie mozna utworzyc nowego");
-				}
+				//do something
+				printf("do something !!!!\n");
+				printf("not implemented");
 			}
            close(connection_socket_descriptor);
         }
@@ -216,6 +173,25 @@ void *ClientMsgBehavior(void *arg)
     pthread_exit(NULL);
 }
 
+
+
+//funkcja opisujÄ…cÄ… zachowanie wÄ…tku - musi przyjmowaÄ‡ argument typu (void *) i zwracaÄ‡ (void *)
+void *SendLobbyBehavior(void *arg)
+{
+    pthread_detach(pthread_self());
+    int id = (int*) arg;
+     //printf("%d\n", id);
+    
+    int connection_socket_descriptor = accept((*t_data_main).uls[id], NULL, NULL);
+    if (connection_socket_descriptor < 0)
+    {
+        printf(": Błąd przy próbie utworzenia gniazda dla połączenia.\n");
+        exit(1);
+    }
+    write(connection_socket_descriptor, &(*t_data_main).data, sizeof(struct data2send));
+    printf("[server]: (%d, %s) - Wyslano lobby do klienta.\n", id, (*t_data_main).data.users[id].name);
+    pthread_exit(NULL);
+}
 
 //funkcja obsĹ‚ugujÄ…ca poĹ‚Ä…czenie z nowym klientem
 void handleConnection(int connection_socket_descriptor) {
