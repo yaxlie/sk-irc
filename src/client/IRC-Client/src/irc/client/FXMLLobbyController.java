@@ -70,21 +70,26 @@ public class FXMLLobbyController implements Initializable {
                 System.out.println("Próba wysyłania");
                 OutputStream os = null;
                 try {
-                    Socket serverSocket = new Socket("localhost", irc.getClientInfo().getMsgPort());
-                    os = serverSocket.getOutputStream();
+                    Socket socket = new Socket("localhost", irc.getClientInfo().getMsgPort());
+                    os = socket.getOutputStream();
                     String m = "wiadomosc proba";
                     IRCMessage msg = new IRCMessage(1, "Wiadomosc", irc.getClientInfo().getNickname(),
                         irc.getClientInfo().getNickname(), "data");
                     os.write(msg.getByte());
+                    socket.close();
                 } catch (IOException ex) {
                     Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });
                 
-        LobbyListener mr = new LobbyListener(true);
-        Thread thread = new Thread(mr);
+        LobbyListener ll = new LobbyListener(true);
+        Thread thread = new Thread(ll);
         thread.start();
+        
+        MessageListener ml = new MessageListener(true);
+        Thread thread2 = new Thread(ml);
+        thread2.start();
     }    
 
     public ListView getUserList() {

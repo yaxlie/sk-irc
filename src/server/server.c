@@ -18,6 +18,7 @@
 #define MAX_ROOMS 10
 #define CLIENT_PORT 2000
 #define CLIENT_PORT_MSG 3000
+#define CLIENT_PORT_WRITE 4000
 #define QUEUE_SIZE 5
 
 
@@ -50,6 +51,14 @@ struct Message
     char date[40];
 };
 
+struct Th_message
+{
+    int fd;
+    int i;
+    int id;
+    struct Message msg;
+};
+
 
 struct data2send
 {
@@ -65,8 +74,10 @@ struct thread_data_t
     
     //users lobby sockets
     int uls[100];
-    //users msg sockets
+    //users msg send sockets
     int ums[100];
+    //users msg write sockets
+    int umw[100];
     struct data2send data;
 };
 
@@ -90,7 +101,26 @@ int assignCPort(struct User u[])
     }
     return i;
 }
+
+void *SendMessageBehavior(void *t_message)
+{
+    //pthread_detach(pthread_self());
+    struct Th_message *msg = (struct Th_message*)t_message;
+    struct Message to_send = (*msg).msg;
     
+     printf("Utworzono nowy wątek do wysłania wiadomości.\n",(*msg).i);
+        
+     int fd = accept((*t_data_main).umw[(*msg).i], NULL, NULL);
+                        printf("accept\n");
+                        
+        printf("[server]: (%d, %s) - Wysyłanie wiadomości do (%d, %s)!\n", (*msg).id, (*t_data_main).data.users[(*msg).id].name, (*msg).i, (*t_data_main).data.users[(*msg).i].name);
+        write(fd,&to_send, sizeof(to_send));
+        close(fd);
+        printf("[server]: (%d, %s) - (%d, %s) Odebrał wiadomość!\n", (*msg).id, (*t_data_main).data.users[(*msg).id].name, (*msg).i, (*t_data_main).data.users[(*msg).i].name);
+        
+        pthread_exit(NULL);
+}
+
 void *ClientMsgBehavior(void *arg)
 {
     pthread_detach(pthread_self());
@@ -122,27 +152,26 @@ void *ClientMsgBehavior(void *arg)
             //TODO msg.config JEST ZLE CZYTANY (ZLA KONWERSJA Z JAVY?)
             
             int i;
-            
             printf("[server]: (%d, %s) - Odebrano wiadomość, przetwarzanie...\n", id, (*t_data_main).data.users[id].name);
             //printf("[server]: %d.\n%s.\n%s.\n%s.\n%s.\n",msg.config, msg.text, msg.sender, msg.receiver, msg.date);
             int ii = 0;
             while(ii < MAX_USERS){
-                //printf("%s.\n%s.\n",(*t_data_main).data.users[ii].name, msg.receiver);
-                //TODO TO MUSI BYC W OSOBNYM WATKU, INACZEJ BEDZIE SIE ZWIESZAC JESLI KTORYS CLIENT NIE ODBBIERZE WIADOMOSCI
+                //printf("(%d, %d, %s) - Odebrano wiadomość, przetwarzanie...\n", th_message.id, th_message.i, th_message.msg.text);
+                
                 if(strncmp((*t_data_main).data.users[ii].name,msg.receiver,sizeof((*t_data_main).data.users[ii])) == 0){
-                    int csd = accept((*t_data_main).ums[ii], NULL, NULL);
-                    if (connection_socket_descriptor < 0)
-                    {
-                        printf(": Błąd przy próbie utworzenia gniazda dla połączenia.\n");
-                        exit(1);
+                        pthread_t thread;
+                        struct Th_message th_message;
+                        th_message.id = id;
+                        th_message.msg = msg;
+                        th_message.i = ii;
+                        int create_result = pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message);
+                        if (create_result){
+                            printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
+                            exit(-1);
+                        }
+                        break;
                     }
-                    printf("[server]: (%d, %s) - Wysłanie wiadomości do (%d, %s)!\n", id, (*t_data_main).data.users[id].name, ii, (*t_data_main).data.users[ii].name);
-                    write(csd,&msg, sizeof(msg));
-                    close(csd);
-                    printf("[server]: (%d, %s) - (%d, %s) Odebrał wiadomość!\n", id, (*t_data_main).data.users[id].name, ii, (*t_data_main).data.users[ii].name);
-                    
-                    break;
-            }
+               
                 ii = ii + 1;
             }
         }
@@ -288,6 +317,10 @@ int main(int argc, char* argv[])
     for(i=0; i<MAX_USERS; i++)
     {
         (*t_data_main).ums[i] = createSocket(CLIENT_PORT_MSG + i);
+    }
+    for(i=0; i<MAX_USERS; i++)
+    {
+        (*t_data_main).umw[i] = createSocket(CLIENT_PORT_WRITE + i);
     }
     printf("[server]: (OK) - Czekanie na nowego użytkownika...\n");
    while(1)

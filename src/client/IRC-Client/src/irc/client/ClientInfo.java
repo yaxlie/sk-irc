@@ -13,6 +13,7 @@ public class ClientInfo {
     
     private String nickname = "Marcin";
     private int port;
+    private int writePort;
     private int msgPort;
 
     public String getNickname() {
@@ -30,6 +31,7 @@ public class ClientInfo {
     public void setPort(int port) {
         this.port = port;
         msgPort = port + 1000;
+        writePort = port + 2000;
     }
 
     public int getMsgPort() {
@@ -38,6 +40,14 @@ public class ClientInfo {
 
     public void setMsgPort(int msgPort) {
         this.msgPort = msgPort;
+    }
+
+    public int getWritePort() {
+        return writePort;
+    }
+
+    public void setWritePort(int writePort) {
+        this.writePort = writePort;
     }
     
     

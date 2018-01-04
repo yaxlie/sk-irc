@@ -80,6 +80,4 @@ public class LobbyListener implements Runnable{
         this.active = active;
     }
     
-    
-    
 }

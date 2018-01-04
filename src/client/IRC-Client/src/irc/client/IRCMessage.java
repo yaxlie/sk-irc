@@ -32,6 +32,7 @@ public class IRCMessage {
     public static final int RECEIVER_SIZE = 20;
     public static final int SENDER_SIZE = 20;
     public static final int DATE_SIZE = 40;
+    public static final int STRUCT_SIZE = 324;
     private int textBegin = 4;
     private int senderBegin = 244;
     private int receiverBegin = 264;
