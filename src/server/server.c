@@ -44,7 +44,7 @@ struct Room
 struct Message
 {
     //do konfiguracji/przelaczania
-	char type[2];//dodane
+	char type[20];//dodane
     int config;
     char text[240];
     char sender[20];
@@ -177,7 +177,7 @@ void *ClientMsgBehavior(void *arg)
             //printf("[server]: %d.\n%s.\n%s.\n%s.\n%s.\n",msg.config, msg.text, msg.sender, msg.receiver, msg.date);
             int ii = 0;
 			printf("%s\n",msg.type);
-			if(strcmp(msg.type,"11")==0){
+			if(strncmp(msg.type,"11",2)==0){
 				while(ii < MAX_USERS){
 					//printf("(%d, %d, %s) - Odebrano wiadomość, przetwarzanie...\n", th_message.id, th_message.i, th_message.msg.text);
 					printf("Wyslij widomosc\n");
@@ -197,7 +197,7 @@ void *ClientMsgBehavior(void *arg)
 				   
 					ii = ii + 1;
 				}
-			}else if(strcmp(msg.type,"12")==0){
+			}else if(strncmp(msg.type,"12",2)==0){
 				printf("dolacz do pokoju\n");
 				while(ii < MAX_ROOMS){
 					if(strncmp((*t_data_main).data.listaPokojow[ii].name,msg.receiver,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
@@ -229,7 +229,7 @@ void *ClientMsgBehavior(void *arg)
 					}
 					ii = ii + 1;
 				}
-			}else if(strcmp(msg.type,"13")==0){
+			}else if(strncmp(msg.type,"13",2)==0){
 				printf("Wyjdz z pokoju\n");
 				while(ii < MAX_ROOMS){
 					if(strncmp((*t_data_main).data.listaPokojow[ii].name,msg.receiver,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
@@ -244,6 +244,20 @@ void *ClientMsgBehavior(void *arg)
 					}
 					ii = ii + 1;
 				}
+			}else if(strncmp(msg.type,"14",2)==0){
+				printf("Otrzymano prosbe o wylogowanie\n");
+				while(ii < MAX_USERS){
+					if(strncmp((*t_data_main).data.User[ii].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
+						strncpy((*t_data_main).data.User[ii].name,"",20);
+						break;
+					}
+				}
+				int iiw = 0;
+				while(iiw < MAX_ROOMS){
+					strncmp((*t_data_main).data.listaPokojow[iiw].users[
+				}
+				printf("Nie znaleziono uz o podanym  niku");
+			}
 			}else{
 				printf("Nie poprawne gowno\n");
 			}
