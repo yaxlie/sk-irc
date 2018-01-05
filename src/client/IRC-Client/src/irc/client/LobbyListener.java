@@ -31,17 +31,18 @@ public class LobbyListener implements Runnable{
         irc = IRCSingleton.getInstance();
         //port = irc.getClientInfo().getPort();
         port = irc.getClientInfo().getPort();
-        try {
-           socket = new Socket(irc.getServerInfo().getName(), port);
-       } catch (IOException ex) {
-           Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
-       }
     }
     
     @Override
     public void run() {
         InputStream is;
         while(active){
+            try {
+                socket = new Socket(irc.getServerInfo().getName(), port);
+            } catch (IOException ex) {
+                Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
             try {
                  is = socket.getInputStream();        
                  byte[] buffer = new byte[LobbyDataProcessing.STRUCT_SIZE];
@@ -60,16 +61,12 @@ public class LobbyListener implements Runnable{
                     irc.getfXMLLobbyController().getRoomList().
                             setItems(FXCollections.observableArrayList(roomList));
                 // }
-                 
+                 socket.close();
             } catch (IOException ex) {
                 Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        try {
-            socket.close();
-        } catch (IOException ex) {
-            Logger.getLogger(LobbyListener.class.getName()).log(Level.SEVERE, null, ex);
-        }
+
     }
 
     public boolean isActive() {

@@ -52,29 +52,25 @@ public class FXMLLoginController implements Initializable {
                     irc.getClientInfo().setNickname(login.getText());
                     irc.getServerInfo().setName(!"".equals(server.getText())? server.getText():"localhost");
                     
-                    irc.clientPortRequest();
+                    irc.clientLogin(button);
                     
-                    FXMLLoader fxmlLoader = new FXMLLoader();
-                    fxmlLoader.setLocation(getClass().getResource("FXMLLobby.fxml"));
-                    /* 
-                     * if "fx:controller" is not set in fxml
-                     * fxmlLoader.setController(NewWindowController);
-                     */
-                    Scene scene;
-                    try {
-                        scene = new Scene(fxmlLoader.load());
-                        Stage stage = new Stage();
-                        stage.setTitle("Poczekalnia IRC");
-                        stage.setScene(scene);
-                        stage.show();
-                        
-                        stage = (Stage) button.getScene().getWindow();
-                        // do what you have to do
-                        stage.close();
-                        
-                        } catch (IOException ex) {
-                            Logger.getLogger(FXMLLoginController.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+//                    FXMLLoader fxmlLoader = new FXMLLoader();
+//                    fxmlLoader.setLocation(getClass().getResource("FXMLLobby.fxml"));
+//                    Scene scene;
+//                    try {
+//                        scene = new Scene(fxmlLoader.load());
+//                        Stage stage = new Stage();
+//                        stage.setTitle("Poczekalnia IRC");
+//                        stage.setScene(scene);
+//                        stage.show();
+//                        
+//                        stage = (Stage) button.getScene().getWindow();
+//                        // do what you have to do
+//                        stage.close();
+//                        
+//                        } catch (IOException ex) {
+//                            Logger.getLogger(FXMLLoginController.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
                 }
             }
         });

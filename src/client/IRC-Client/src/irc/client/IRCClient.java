@@ -27,6 +27,9 @@ public class IRCClient extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("FXMLLogin.fxml"));
         
         Scene scene = new Scene(root);  
+        stage.setOnCloseRequest( event -> {
+                            irc.logout();
+                       });
         stage.setScene(scene);
         stage.show();
     }

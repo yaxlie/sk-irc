@@ -194,6 +194,7 @@ void *SendLobbyBehavior(void *arg)
     }
     write(connection_socket_descriptor, &(*t_data_main).data, sizeof(struct data2send));
     printf("[server]: (%d, %s) - Wyslano lobby do klienta.\n", id, (*t_data_main).data.users[id].name);
+    close(connection_socket_descriptor);
     pthread_exit(NULL);
 }
 

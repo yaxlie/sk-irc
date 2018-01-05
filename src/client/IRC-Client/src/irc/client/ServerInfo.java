@@ -9,7 +9,7 @@ package irc.client;
  * @author marcin
  */
 public class ServerInfo {
-    private String name = "localhost";
+    private String name = "";
     private int mainPort = 12345;
 
     public String getName() {

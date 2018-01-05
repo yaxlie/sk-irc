@@ -70,12 +70,7 @@ public class FXMLLobbyController implements Initializable {
                    irc.getUserChatControllers().get(cName).getStage().toFront();
                }
                else{
-                       Stage stage = newStagePm("FXMLPm.fxml", cName);         
-                       //irc.getUserChatControllers().put(cName, stage);
-                       stage.setOnCloseRequest( event -> {
-                            irc.getUserChatControllers().remove(cName);
-                       });
-                       stage.show();
+                       newStagePm(cName);         
                }
             }    
         }
@@ -131,7 +126,7 @@ public class FXMLLobbyController implements Initializable {
         return roomList;
     }
     
-    public Stage newStagePm(String fxmlfile, String title){
+    private Stage newStage(String fxmlfile, String title){
         try {
             FXMLLoader fxmlLoader = new FXMLLoader();
             fxmlLoader.setLocation(getClass().getResource(fxmlfile));
@@ -150,5 +145,14 @@ public class FXMLLobbyController implements Initializable {
             Logger.getLogger(FXMLLobbyController.class.getName()).log(Level.SEVERE, null, ex);
         }   
         return null;
+    }
+    
+    public Stage newStagePm(String title){
+        Stage stage = newStage("FXMLPm.fxml", title); 
+        stage.setOnCloseRequest( event -> {
+            irc.getUserChatControllers().remove(title);
+        });
+           stage.show();
+           return stage;
     }
 }

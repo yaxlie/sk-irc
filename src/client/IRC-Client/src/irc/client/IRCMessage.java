@@ -61,7 +61,7 @@ public class IRCMessage {
             text = message.substring(textBegin, senderBegin);
             sender = message.substring(senderBegin, receiverBegin);
             receiver = message.substring(receiverBegin, dateBegin);
-            date = message.substring(dateBegin, bytes.length);
+            date = message.substring(dateBegin, dateEnd);
             
 //            text = trimZeros(text);
 //            sender = trimZeros(sender);
@@ -74,13 +74,18 @@ public class IRCMessage {
         }
     }
   
-  static String trimZeros(String str) {
+  public static String trimZeros(String str) {
             int pos = str.indexOf(0);
             String s = str.substring(0, pos) + " ";
             return pos == -1 ? str : s;
         }
 
-    public String getText() {
+    public String getText(boolean substring) {
+        if(substring){
+            text = text.substring(0,text.length()-1);
+            while(text.charAt(text.length()-1) == ' ')
+                text = text.substring(0,text.length()-1);  
+        }
         return text;
     }
 
@@ -88,7 +93,12 @@ public class IRCMessage {
         this.text = text;
     }
 
-    public String getSender() {
+    public String getSender(boolean substring) {
+        if(substring){
+            sender = sender.substring(0,sender.length()-1);
+            while(sender.charAt(sender.length()-1) == ' ')
+                sender = sender.substring(0,sender.length()-1);  
+        }
         return sender;
     }
 
@@ -96,7 +106,12 @@ public class IRCMessage {
         this.sender = sender;
     }
 
-    public String getReceiver() {
+    public String getReceiver(boolean substring) {
+        if(substring){
+            receiver = receiver.substring(0,receiver.length()-1);
+            while(receiver.charAt(receiver.length()-1) == ' ')
+                receiver = receiver.substring(0,receiver.length()-1);  
+        }
         return receiver;
     }
 
@@ -104,7 +119,12 @@ public class IRCMessage {
         this.receiver = receiver;
     }
 
-    public String getDate() {
+    public String getDate(boolean substring) {
+        if(substring){
+            date = date.substring(0,date.length()-1);
+            while(date.charAt(date.length()-1) == ' ')
+                date = date.substring(0,date.length()-1);  
+        }
         return date;
     }
 

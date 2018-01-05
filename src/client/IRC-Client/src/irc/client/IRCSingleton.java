@@ -13,6 +13,9 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.stage.Stage;
 
 /**
@@ -39,11 +42,6 @@ public class IRCSingleton {
         serverInfo = new ServerInfo();
         userChatControllers = new HashMap<>(); 
         //roomChatControllers = new HashMap<>(); 
-       try {
-           serverSocket = new Socket(serverInfo.getName(), serverInfo.getMainPort());
-       } catch (IOException ex) {
-           Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
-       }
    }
    
    public static IRCSingleton getInstance() {
@@ -77,31 +75,59 @@ public class IRCSingleton {
         this.serverSocket = serverSocket;
     }
     
-    public void clientPortRequest(){
+    public void clientLogin(Button button){
+        
+        try {
+           serverSocket = new Socket(serverInfo.getName(), serverInfo.getMainPort());
+        } catch (IOException ex) {
+           Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         OutputStream os = null;
-       try {
-           os = serverSocket.getOutputStream();
-           String msg = clientInfo.getNickname();
-           while (msg.length()<IRCMessage.SENDER_SIZE-1)
-               msg+=" ";
-           msg+='\0';
-           os.write(msg.getBytes("UTF-8"));
-       } catch (IOException ex) {
-           Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
-       }
-       
-        InputStream is;
-       try {
-            is = serverSocket.getInputStream();        
-            byte[] buffer = new byte[Integer.SIZE];
-            is.read(buffer);
-            int port = ByteBuffer.wrap(buffer).getInt();
-            System.out.println(port);
-            clientInfo.setPort(port);
-            serverSocket.close();
-       } catch (IOException ex) {
-           Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
-       }
+        if(serverSocket!=null){
+            try {
+                os = serverSocket.getOutputStream();
+                String msg = clientInfo.getNickname();
+                while (msg.length()<IRCMessage.SENDER_SIZE-1)
+                    msg+=" ";
+                msg+='\0';
+                os.write(msg.getBytes("UTF-8"));
+            } catch (IOException ex) {
+                Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+             InputStream is;
+            try {
+                 is = serverSocket.getInputStream();        
+                 byte[] buffer = new byte[Integer.SIZE];
+                 is.read(buffer);
+                 int port = ByteBuffer.wrap(buffer).getInt();
+                 System.out.println(port);
+                 clientInfo.setPort(port);
+                 serverSocket.close();
+
+                 FXMLLoader fxmlLoader = new FXMLLoader();
+                 fxmlLoader.setLocation(getClass().getResource("FXMLLobby.fxml"));
+                 Scene scene;
+                 try {
+                     scene = new Scene(fxmlLoader.load());
+                     Stage stage = new Stage();
+                     stage.setTitle("Poczekalnia IRC");
+                     stage.setScene(scene);
+                     stage.show();
+
+                     stage = (Stage) button.getScene().getWindow();
+                     // do what you have to do
+                     stage.close();
+
+                     } catch (IOException ex) {
+                         Logger.getLogger(FXMLLoginController.class.getName()).log(Level.SEVERE, null, ex);
+                     }
+
+            } catch (IOException ex) {
+                Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 
     public LobbyInfo getLobbyInfo() {
@@ -128,4 +154,19 @@ public class IRCSingleton {
         this.userChatControllers = userChatControllers;
     }
 
+    public void logout(){
+        System.out.println("[client]: Wylogowywanie");
+        OutputStream os = null;
+        try {
+            Socket socket = new Socket(getServerInfo().getName(), getClientInfo().getMsgPort());
+            os = socket.getOutputStream();
+            IRCMessage msg = new IRCMessage(1, "logout", getClientInfo().getNickname(),
+                "server", "data");
+            os.write(msg.getByte());
+            socket.close();
+
+        } catch (IOException ex) {
+            Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

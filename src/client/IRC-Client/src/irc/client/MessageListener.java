@@ -11,7 +11,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 /**
  *
@@ -51,23 +55,30 @@ public class MessageListener implements Runnable{
                 int type = msg.getmType();
                 //TODO w zaleznosci od type, room or pm
                 
-                String receiver = msg.getReceiver();
-                System.out.println(receiver.length());
-//                System.out.println(receiver + ".");
-//                System.out.println(irc.getClientInfo().getNickname()+ ".");
+                String sender = msg.getSender(false);
 
-                FXMLPmController contr = irc.getUserChatControllers().get(receiver);
-                System.out.println(receiver.length());
-                if(contr != null)
-                    contr.getMsgArea().appendText("\n" + msg.getSender().substring(0,19) + ": " + msg.getText());
-                else
-                    System.out.println("contr is null in MessageListener");
-                System.out.println(msg.getText()); 
+                FXMLPmController contr = irc.getUserChatControllers().get(sender);
                 
-                socket.close();
+                if(contr == null){
+                    Platform.runLater(new Runnable(){
+                    @Override
+                    public void run() {
+                        irc.getfXMLLobbyController().newStagePm(sender);
+                        FXMLPmController contr = irc.getUserChatControllers().get(sender);
+                        contr.getMsgArea().appendText("\n" + msg.getSender(true) + ": " + msg.getText(true));
+                    }
+                    // ...
+                    });
+                }
+                else
+                    contr.getMsgArea().appendText("\n" + msg.getSender(true) + ": " + msg.getText(true));
+                
             } catch (IOException ex) {
                 Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
             }
+            try{
+                socket.close();
+            }catch(Exception e){}
         }
     }
 
@@ -78,6 +89,5 @@ public class MessageListener implements Runnable{
     public void setActive(boolean active) {
         this.active = active;
     }
-   
     
 }

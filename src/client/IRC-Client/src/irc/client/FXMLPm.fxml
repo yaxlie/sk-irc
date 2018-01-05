@@ -9,7 +9,7 @@
 <AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="347.0" prefWidth="378.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="irc.client.FXMLPmController">
   <children>
     <TextArea fx:id="msgArea" editable="false" layoutX="14.0" layoutY="14.0" prefHeight="266.0" prefWidth="350.0" wrapText="true" />
-    <TextField fx:id="msgField" layoutX="14.0" layoutY="293.0" prefWidth="292.0" />
+    <TextField fx:id="msgField" layoutX="14.0" layoutY="293.0" onAction="#sendMsg" prefWidth="292.0" />
     <Button fx:id="button" layoutX="317.0" layoutY="294.0" mnemonicParsing="false" text="Send" />
   </children>
 </AnchorPane>
