@@ -111,10 +111,12 @@ public class FXMLLobbyController implements Initializable {
                 
         LobbyListener ll = new LobbyListener(true);
         Thread thread = new Thread(ll);
+        irc.getThreads().add(thread);
         thread.start();
         
         MessageListener ml = new MessageListener(true);
         Thread thread2 = new Thread(ml);
+        irc.getThreads().add(thread2);
         thread2.start();
     }    
 

@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +30,7 @@ public class IRCSingleton {
     private ClientInfo clientInfo;
     private ServerInfo serverInfo;
     private Socket serverSocket;
+    private ArrayList<Thread>threads;
    
     
     private HashMap<String,FXMLPmController> userChatControllers; 
@@ -41,6 +43,7 @@ public class IRCSingleton {
         clientInfo = new ClientInfo();
         serverInfo = new ServerInfo();
         userChatControllers = new HashMap<>(); 
+        threads = new ArrayList<>();
         //roomChatControllers = new HashMap<>(); 
    }
    
@@ -113,6 +116,12 @@ public class IRCSingleton {
                      scene = new Scene(fxmlLoader.load());
                      Stage stage = new Stage();
                      stage.setTitle("Poczekalnia IRC");
+                     stage.setOnCloseRequest( event -> {
+                         threads.forEach((t) -> {
+                             t.stop();
+                         });
+                         System.exit(0);
+                    });
                      stage.setScene(scene);
                      stage.show();
 
@@ -169,4 +178,9 @@ public class IRCSingleton {
             Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    public ArrayList<Thread> getThreads() {
+        return threads;
+    }
+    
 }
