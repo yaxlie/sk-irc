@@ -32,36 +32,41 @@ public class IRCMessage {
     public static final int RECEIVER_SIZE = 20;
     public static final int SENDER_SIZE = 20;
     public static final int DATE_SIZE = 40;
-    public static final int STRUCT_SIZE = 324;
+    public static final int STRUCT_SIZE = 344;
     private int textBegin = 4;
     private int senderBegin = 244;
     private int receiverBegin = 264;
     private int dateBegin = 284;
     private int dateEnd = 324;
+    private int typeBegin = 324;
+    private int typeEnd = 344;
     
-    private int mType = 0;
+    private int mConfig = 0;
     private String text="";
     private String sender="";
     private String receiver="";
     private String date="";
+    private String type="";
     
-    public IRCMessage(int mType, String text, String sender, String receiver, String date){
-        this.mType = mType;
+    public IRCMessage(int mConfig, String text, String sender, String receiver, String date, String type){
+        this.mConfig = mConfig;
         this.text = text;
         this.sender = sender;
         this.receiver = receiver;
         this.date = date;
+        this.type = type;
     }
      public IRCMessage(byte[] bytes) {
         String message;
         StandardCharsets.UTF_8.name();
         try {
             message = new String(bytes, "UTF-8");   
-            mType = ByteBuffer.wrap(bytes).getInt();
+            mConfig = ByteBuffer.wrap(bytes).getInt();
             text = message.substring(textBegin, senderBegin);
             sender = message.substring(senderBegin, receiverBegin);
             receiver = message.substring(receiverBegin, dateBegin);
             date = message.substring(dateBegin, dateEnd);
+            type = message.substring(typeBegin, typeEnd);
             
 //            text = trimZeros(text);
 //            sender = trimZeros(sender);
@@ -131,10 +136,25 @@ public class IRCMessage {
     public void setDate(String date) {
         this.date = date;
     }
+
+    public String getType(boolean substring) {
+        if(substring){
+            type = type.substring(0,type.length()-1);
+            while(type.charAt(type.length()-1) == ' ')
+                type = type.substring(0,type.length()-1);  
+        }
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+    
+    
     
     public byte[] getByte(){
 //        String s = text + sender + receiver + date;
-        byte[] b = new byte[324];
+        byte[] b = new byte[STRUCT_SIZE];
         
         try {
                 while(text.length()<239)
@@ -149,13 +169,16 @@ public class IRCMessage {
                 while(date.length()<39)
                     date += " ";
                 date+='\0';
+                while(type.length()<19)
+                    type += " ";
+                type+='\0';
                 
-                String s = text + sender + receiver + date;
-                byte[] bytes = toBytes(mType);
+                String s = text + sender + receiver + date + type;
+                byte[] bytes = toBytes(mConfig);
 //                System.out.println(Integer.toString(ByteBuffer.wrap(bytes).getInt()));
 //                b = s.getBytes("UTF-8");
                 System.arraycopy(bytes, 0, b, 0, 4);
-                System.arraycopy(s.getBytes("UTF-8"), 0, b, 4, 320);
+                System.arraycopy(s.getBytes("UTF-8"), 0, b, 4, 340);
 //                System.out.println(new String(b));
             } 
         catch (UnsupportedEncodingException ex) {
@@ -164,12 +187,12 @@ public class IRCMessage {
         return b;
     }
 
-    public int getmType() {
-        return mType;
+    public int getmConfig() {
+        return mConfig;
     }
 
-    public void setmType(int mType) {
-        this.mType = mType;
+    public void setmType(int mConfig) {
+        this.mConfig = mConfig;
     }
     byte[] toBytes(int i)
     {
@@ -182,4 +205,6 @@ public class IRCMessage {
 
       return result;
     }
+    
+    
 }

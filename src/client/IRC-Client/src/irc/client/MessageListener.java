@@ -52,7 +52,7 @@ public class MessageListener implements Runnable{
                 byte[] buffer = new byte[IRCMessage.STRUCT_SIZE];
                 is.read(buffer);
                 IRCMessage msg = new IRCMessage(buffer);
-                int type = msg.getmType();
+                int config = msg.getmConfig();
                 //TODO w zaleznosci od type, room or pm
                 
                 String sender = msg.getSender(false);
