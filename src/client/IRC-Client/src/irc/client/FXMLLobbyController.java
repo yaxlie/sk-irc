@@ -47,11 +47,6 @@ public class FXMLLobbyController implements Initializable {
     @FXML
     private Button joinButton;
     
-    @FXML
-    private void handleButtonAction(ActionEvent event) {
-        System.out.println("You clicked me!");
-        label.setText("Hello World!");
-    }
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -81,34 +76,20 @@ public class FXMLLobbyController implements Initializable {
         public void handle(MouseEvent e) {
             if(e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2 &&
                (e.getTarget() instanceof LabeledText || ((GridPane) e.getTarget()).getChildren().size() > 0)) {
-               int id = userList.getSelectionModel().getSelectedIndex();
+               int id = roomList.getSelectionModel().getSelectedIndex();
                String cName = irc.getLobbyInfo().getRooms().get(id).getName();
-               System.out.println("clicked on " + cName);     
+               System.out.println("clicked on " + cName);   
                
-               
+               if(irc.getRoomChatControllers().get(cName) != null){
+                   irc.getRoomChatControllers().get(cName).getStage().toFront();
+               }
+               else{
+                       newStageRoom(cName);         
+               }
             }    
         }
     });
 
-//        joinButton.setOnAction(new EventHandler<ActionEvent>() {
-//            @Override
-//            public void handle(ActionEvent event) {
-//                System.out.println("Próba wysyłania");
-//                OutputStream os = null;
-//                try {
-//                    Socket socket = new Socket("localhost", irc.getClientInfo().getMsgPort());
-//                    os = socket.getOutputStream();
-//                    String m = "wiadomosc proba";
-//                    IRCMessage msg = new IRCMessage(1, "Wiadomosc", irc.getClientInfo().getNickname(),
-//                        irc.getClientInfo().getNickname(), "data");
-//                    os.write(msg.getByte());
-//                    socket.close();
-//                } catch (IOException ex) {
-//                    Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            }
-//        });
-                
         LobbyListener ll = new LobbyListener(true);
         Thread thread = new Thread(ll);
         irc.getThreads().add(thread);
@@ -150,11 +131,64 @@ public class FXMLLobbyController implements Initializable {
     }
     
     public Stage newStagePm(String title){
-        Stage stage = newStage("FXMLPm.fxml", title); 
+        Stage stage = null;
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        
+        try {
+            fxmlLoader.setLocation(getClass().getResource("FXMLPm.fxml"));
+            Scene scene;
+            scene = new Scene(fxmlLoader.load());
+            stage = new Stage();
+            stage.setTitle(title);
+            stage.setScene(scene);
+            
+            FXMLPmController controller = (FXMLPmController)fxmlLoader.getController();
+            controller.setStage(stage);
+            irc.getUserChatControllers().put(title, controller);
+
+        } catch (IOException ex) {
+            Logger.getLogger(FXMLLobbyController.class.getName()).log(Level.SEVERE, null, ex);
+        }  
+
+        FXMLPmController controller = (FXMLPmController)fxmlLoader.getController();
+        controller.setStage(stage);
+        irc.getUserChatControllers().put(title, controller);
         stage.setOnCloseRequest( event -> {
             irc.getUserChatControllers().remove(title);
         });
-           stage.show();
-           return stage;
+        
+        stage.show();
+        return stage;
+    }
+    
+    public Stage newStageRoom(String title){
+        Stage stage = null;
+        FXMLLoader fxmlLoader = new FXMLLoader();
+        
+        try {
+            fxmlLoader.setLocation(getClass().getResource("FXMLRoom.fxml"));
+            Scene scene;
+            scene = new Scene(fxmlLoader.load());
+            stage = new Stage();
+            stage.setTitle(title);
+            stage.setScene(scene);
+            
+            FXMLRoomController controller = (FXMLRoomController)fxmlLoader.getController();
+            controller.setStage(stage);
+            irc.getRoomChatControllers().put(title, controller);
+
+        } catch (IOException ex) {
+            Logger.getLogger(FXMLLobbyController.class.getName()).log(Level.SEVERE, null, ex);
+        }  
+
+        FXMLRoomController controller = (FXMLRoomController)fxmlLoader.getController();
+        controller.setStage(stage);
+        irc.getRoomChatControllers().put(title, controller);
+        stage.setOnCloseRequest( event -> {
+            irc.getRoomChatControllers().remove(title);
+        });
+        
+        stage.show();
+        return stage;
     }
 }

@@ -34,7 +34,7 @@ public class IRCSingleton {
    
     
     private HashMap<String,FXMLPmController> userChatControllers; 
-    //private HashMap<String,Stage> roomChatControllers; 
+    private HashMap<String,FXMLRoomController> roomChatControllers; 
    
    private FXMLLobbyController fXMLLobbyController;
    
@@ -44,7 +44,7 @@ public class IRCSingleton {
         serverInfo = new ServerInfo();
         userChatControllers = new HashMap<>(); 
         threads = new ArrayList<>();
-        //roomChatControllers = new HashMap<>(); 
+        roomChatControllers = new HashMap<>(); 
    }
    
    public static IRCSingleton getInstance() {
@@ -117,6 +117,7 @@ public class IRCSingleton {
                      Stage stage = new Stage();
                      stage.setTitle("Poczekalnia IRC");
                      stage.setOnCloseRequest( event -> {
+                         logout();
                          threads.forEach((t) -> {
                              t.stop();
                          });
@@ -182,5 +183,15 @@ public class IRCSingleton {
     public ArrayList<Thread> getThreads() {
         return threads;
     }
+
+    public HashMap<String, FXMLRoomController> getRoomChatControllers() {
+        return roomChatControllers;
+    }
+
+    public void setRoomChatControllers(HashMap<String, FXMLRoomController> roomChatControllers) {
+        this.roomChatControllers = roomChatControllers;
+    }
+
+
     
 }
