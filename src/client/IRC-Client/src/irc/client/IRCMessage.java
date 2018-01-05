@@ -157,9 +157,21 @@ public class IRCMessage {
         byte[] b = new byte[STRUCT_SIZE];
         
         try {
+                if(text.length()>239)
+                    text = text.substring(0, 239);
+                if(sender.length()>19)
+                    sender = sender.substring(0, 19);
+                if(receiver.length()>19)
+                    receiver = receiver.substring(0, 19);
+                if(type.length()>19)
+                    type = type.substring(0, 19);
+                if(date.length()>19)
+                    date = date.substring(0, 39);
+                
                 while(text.length()<239)
                     text += " ";
                 text+='\0';
+                
                 while(sender.length()<19)
                     sender += " ";
                 sender+='\0';
@@ -177,8 +189,10 @@ public class IRCMessage {
                 byte[] bytes = toBytes(mConfig);
 //                System.out.println(Integer.toString(ByteBuffer.wrap(bytes).getInt()));
 //                b = s.getBytes("UTF-8");
+//                System.out.println(s);
                 System.arraycopy(bytes, 0, b, 0, 4);
                 System.arraycopy(s.getBytes("UTF-8"), 0, b, 4, 340);
+                
 //                System.out.println(new String(b));
             } 
         catch (UnsupportedEncodingException ex) {

@@ -45,7 +45,7 @@ public class LobbyInfo {
     public ArrayList<String> getRoomNames(){
         ArrayList<String> list = new ArrayList<>();
         for (Room r : rooms){
-            list.add(r.getName() + "   " + r.getUsers().size() + "/" + Integer.toString(r.getrSize()));
+            list.add(r.getUsers().size() + "/" + Integer.toString(r.getrSize()) + "   "  + r.getName());
         }
         return list;
     }

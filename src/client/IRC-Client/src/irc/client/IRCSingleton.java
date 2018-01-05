@@ -192,6 +192,36 @@ public class IRCSingleton {
         this.roomChatControllers = roomChatControllers;
     }
 
+    public void joinRoomRequest(String name){
+        System.out.println("[client]: Prośba o dołączenie do pokoju : " + name);
+        OutputStream os = null;
+        try {
+            Socket socket = new Socket(getServerInfo().getName(), getClientInfo().getMsgPort());
+            os = socket.getOutputStream();
+            IRCMessage msg = new IRCMessage(1, "join_request", getClientInfo().getNickname(),
+                name, "data", "12");
+            os.write(msg.getByte());
+            socket.close();
 
+        } catch (IOException ex) {
+            Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void leaveRoomRequest(String name){
+        System.out.println("[client]: Prośba o opuszczenie pokoju : " + name);
+        OutputStream os = null;
+        try {
+            Socket socket = new Socket(getServerInfo().getName(), getClientInfo().getMsgPort());
+            os = socket.getOutputStream();
+            IRCMessage msg = new IRCMessage(1, "leave_room_request", getClientInfo().getNickname(),
+                name, "data", "13");
+            os.write(msg.getByte());
+            socket.close();
+
+        } catch (IOException ex) {
+            Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
 }

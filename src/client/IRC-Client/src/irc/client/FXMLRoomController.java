@@ -27,6 +27,7 @@ import javafx.stage.Stage;
  * @author marcin
  */
 public class FXMLRoomController implements Initializable {
+    
    private IRCSingleton irc = IRCSingleton.getInstance();
     
     

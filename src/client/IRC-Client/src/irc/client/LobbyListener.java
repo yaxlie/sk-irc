@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 
 /**
@@ -58,8 +59,13 @@ public class LobbyListener implements Runnable{
                     
                     ArrayList<String> roomList = irc.getLobbyInfo().getRoomNames();
                     //System.out.println(userList.size());
-                    irc.getfXMLLobbyController().getRoomList().
+                    Platform.runLater(new Runnable(){
+                     @Override
+                     public void run() {
+                         irc.getfXMLLobbyController().getRoomList().
                             setItems(FXCollections.observableArrayList(roomList));
+                     }
+                    });
                 // }
                  socket.close();
             } catch (IOException ex) {

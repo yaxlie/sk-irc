@@ -84,6 +84,7 @@ public class FXMLLobbyController implements Initializable {
                    irc.getRoomChatControllers().get(cName).getStage().toFront();
                }
                else{
+                       irc.joinRoomRequest(cName);
                        newStageRoom(cName);         
                }
             }    
@@ -186,6 +187,7 @@ public class FXMLLobbyController implements Initializable {
         irc.getRoomChatControllers().put(title, controller);
         stage.setOnCloseRequest( event -> {
             irc.getRoomChatControllers().remove(title);
+            irc.leaveRoomRequest(title);
         });
         
         stage.show();

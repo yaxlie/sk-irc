@@ -122,6 +122,26 @@ void *SendMessageBehavior(void *t_message)
         pthread_exit(NULL);
 }
 
+//funkcja opisujÄ…cÄ… zachowanie wÄ…tku - musi przyjmowaÄ‡ argument typu (void *) i zwracaÄ‡ (void *)
+void *SendLobbyBehavior(void *arg)
+{
+    pthread_detach(pthread_self());
+    int id = (int*) arg;
+     //printf("%d\n", id);
+    
+    int connection_socket_descriptor = accept((*t_data_main).uls[id], NULL, NULL);
+    if (connection_socket_descriptor < 0)
+    {
+        printf(": Błąd przy próbie utworzenia gniazda dla połączenia.\n");
+        exit(1);
+    }
+    write(connection_socket_descriptor, &(*t_data_main).data, sizeof(struct data2send));
+    printf("[server]: (%d, %s) - Wyslano lobby do klienta.\n", id, (*t_data_main).data.users[id].name);
+    close(connection_socket_descriptor);
+    pthread_exit(NULL);
+}
+
+
 void *ClientMsgBehavior(void *arg)
 {
     pthread_detach(pthread_self());
@@ -152,52 +172,108 @@ void *ClientMsgBehavior(void *arg)
             close(connection_socket_descriptor);
             //TODO msg.config JEST ZLE CZYTANY (ZLA KONWERSJA Z JAVY?)
             
-            int i;
+int i;
             printf("[server]: (%d, %s) - Odebrano wiadomość, przetwarzanie...\n", id, (*t_data_main).data.users[id].name);
             //printf("[server]: %d.\n%s.\n%s.\n%s.\n%s.\n",msg.config, msg.text, msg.sender, msg.receiver, msg.date);
             int ii = 0;
-            while(ii < MAX_USERS){
-                //printf("(%d, %d, %s) - Odebrano wiadomość, przetwarzanie...\n", th_message.id, th_message.i, th_message.msg.text);
-                
-                if(strncmp((*t_data_main).data.users[ii].name,msg.receiver,sizeof((*t_data_main).data.users[ii])) == 0){
-                        pthread_t thread;
-                        struct Th_message th_message;
-                        th_message.id = id;
-                        th_message.msg = msg;
-                        th_message.i = ii;
-                        int create_result = pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message);
-                        if (create_result){
-                            printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
-                            exit(-1);
-                        }
-                        break;
-                    }
-               
-                ii = ii + 1;
-            }
+			printf("%s.\n %s.\n %s.\n",msg.type,msg.date,msg.receiver);
+			if(strncmp(msg.type,"11",2)==0){
+				while(ii < MAX_USERS){
+					//printf("(%d, %d, %s) - Odebrano wiadomość, przetwarzanie...\n", th_message.id, th_message.i, th_message.msg.text);
+					printf("Wyslij widomosc\n");
+					if(strncmp((*t_data_main).data.users[ii].name,msg.receiver,sizeof((*t_data_main).data.users[ii])) == 0){
+							pthread_t thread;
+							struct Th_message th_message;
+							th_message.id = id;
+							th_message.msg = msg;
+							th_message.i = ii;
+							int create_result = pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message);
+							if (create_result){
+								printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
+								exit(-1);
+							}
+							break;
+						}
+				   
+					ii = ii + 1;
+				}
+			}else if(strncmp(msg.type,"12",2)==0){
+				printf("dolacz do pokoju\n");
+				while(ii < MAX_ROOMS){
+					if(strncmp((*t_data_main).data.listaPokojow[ii].name,msg.receiver,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
+						int iiw = 0;
+						while(iiw < 10){
+							if(strncmp((*t_data_main).data.listaPokojow[ii].users[iiw].name,"",20) == 0){
+								printf("Przydzielono miejsce w Room\n");
+								(*t_data_main).data.listaPokojow[ii].users[iiw] = (*t_data_main).data.users[id];
+								pthread_t thread1[100];
+								for (i=0; i<MAX_USERS; i++)
+								{
+									printf("Wysylam\n");
+									//printf("%d ", (*th_data).data.users[i].port);
+									if((*t_data_main).data.users[i].port != 0)
+									{
+										printf("cos sie dzieje\n");
+										int create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
+										 //printf("nowy watek\n");
+										if (create_result){
+										printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+										exit(-1);
+										}
+									}
+								}
+								break;
+							}
+							iiw = iiw + 1;
+						}
+					}
+					ii = ii + 1;
+				}
+			}else if(strncmp(msg.type,"13",2)==0){
+				printf("Wyjdz z pokoju\n");
+				while(ii < MAX_ROOMS){
+					if(strncmp((*t_data_main).data.listaPokojow[ii].name,msg.receiver,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
+						int iiw = 0;
+						while(iiw < 10){
+							if(strncmp((*t_data_main).data.listaPokojow[ii].users[iiw].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii].users[iiw].name))==0){
+								strcpy((*t_data_main).data.listaPokojow[ii].users[iiw].name,"");
+								break;
+							}
+							iiw = iiw + 1;
+						}
+					}
+					ii = ii + 1;
+				}
+			}else if(strncmp(msg.type,"14",2)==0){
+				printf("Otrzymano prosbe o wylogowanie\n");
+				printf("Nie testowano\n");
+				while(ii < MAX_USERS){
+					if(strncmp((*t_data_main).data.users[ii].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
+						strncpy((*t_data_main).data.users[ii].name,"",20);
+						break;
+					}
+				}
+				
+				int iiw = 0;
+				while(iiw < MAX_ROOMS){
+					while(ii < 10){
+						if(strncmp((*t_data_main).data.listaPokojow[iiw].users[ii].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
+							strncmp((*t_data_main).data.listaPokojow[iiw].users[ii].name,"",20);
+						}
+						ii = ii + 1;
+					}
+					iiw = iiw + 1;
+				}
+				printf("Nie znaleziono uz o podanym  niku");
+			}else{
+				printf("Nie poprawne gowno\n");
+			}
         }
     
     pthread_exit(NULL);
 }
 
-//funkcja opisujÄ…cÄ… zachowanie wÄ…tku - musi przyjmowaÄ‡ argument typu (void *) i zwracaÄ‡ (void *)
-void *SendLobbyBehavior(void *arg)
-{
-    pthread_detach(pthread_self());
-    int id = (int*) arg;
-     //printf("%d\n", id);
-    
-    int connection_socket_descriptor = accept((*t_data_main).uls[id], NULL, NULL);
-    if (connection_socket_descriptor < 0)
-    {
-        printf(": Błąd przy próbie utworzenia gniazda dla połączenia.\n");
-        exit(1);
-    }
-    write(connection_socket_descriptor, &(*t_data_main).data, sizeof(struct data2send));
-    printf("[server]: (%d, %s) - Wyslano lobby do klienta.\n", id, (*t_data_main).data.users[id].name);
-    close(connection_socket_descriptor);
-    pthread_exit(NULL);
-}
+
 
 //funkcja obsĹ‚ugujÄ…ca poĹ‚Ä…czenie z nowym klientem
 void handleConnection(int connection_socket_descriptor) {
@@ -308,9 +384,26 @@ int main(int argc, char* argv[])
     }
     
     printf("[server]: (init) - Tworzenie pokojów...\n");
+    
+    strncpy((*t_data_main).data.listaPokojow[0].name, "Pierwszy!", 20);
+    strncpy((*t_data_main).data.listaPokojow[1].name, "Nietykalni", 20);
+    strncpy((*t_data_main).data.listaPokojow[2].name, "FFXIV", 20);
+    strncpy((*t_data_main).data.listaPokojow[3].name, "Bazy Poprawka", 20);
+    strncpy((*t_data_main).data.listaPokojow[4].name, "FSociety", 20);
+    strncpy((*t_data_main).data.listaPokojow[5].name, "オタク", 20);
+    strncpy((*t_data_main).data.listaPokojow[6].name, "BlaBlaBla", 20);
+    strncpy((*t_data_main).data.listaPokojow[7].name, "for the horde", 20);
+    strncpy((*t_data_main).data.listaPokojow[8].name, "Bilderberg", 20);
+    strncpy((*t_data_main).data.listaPokojow[8].name, "Bilderberg", 20);
+    strncpy((*t_data_main).data.listaPokojow[9].name, "VIP Room", 20);
+    strncpy((*t_data_main).data.listaPokojow[9].password, "1234", 20);
     for(i=0; i<MAX_ROOMS; i++)
     {
-        strncpy((*t_data_main).data.listaPokojow[i].name, "Pokój", 20);
+		int ii = 0;
+		while(ii < 10){
+			strncpy((*t_data_main).data.listaPokojow[i].users[ii].name,"",20);
+			ii = ii + 1;
+		}
         printf("%s. \n", (*t_data_main).data.listaPokojow[i].name);
     }
     
