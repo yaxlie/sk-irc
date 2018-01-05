@@ -246,15 +246,20 @@ int i;
 				}
 			}else if(strncmp(msg.type,"14",2)==0){
 				printf("Otrzymano prosbe o wylogowanie\n");
-				printf("Nie testowano\n");
+				printf("Jezeli dziala pierwszy if to mniej wiecej dziala\n");
 				while(ii < MAX_USERS){
+
 					if(strncmp((*t_data_main).data.users[ii].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
 						strncpy((*t_data_main).data.users[ii].name,"",20);
+						(*t_data_main).data.users[ii].port = 0;
+							printf("dd\n");
 						break;
 					}
+					ii = ii + 1;
 				}
-				
+				ii = 0;
 				int iiw = 0;
+				printf("cos sie stanelo\n");
 				while(iiw < MAX_ROOMS){
 					while(ii < 10){
 						if(strncmp((*t_data_main).data.listaPokojow[iiw].users[ii].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
@@ -262,9 +267,10 @@ int i;
 						}
 						ii = ii + 1;
 					}
+					ii = 0;
 					iiw = iiw + 1;
 				}
-				printf("Nie znaleziono uz o podanym  niku");
+				printf("Nie znaleziono uz o podanym  niku\n");
 			}else{
 				printf("Nie poprawne gowno\n");
 			}
