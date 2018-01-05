@@ -65,7 +65,7 @@ public class LobbyDataProcessing {
             if(user.getName().matches(".*[0-9].*") || user.getName().matches(".*[a-z].*")
                     || user.getName().matches(".*[A-Z].*")){
                 userList.add(user);
-                System.out.println(user.getName());
+                //System.out.println(user.getName());
             }
             
         }

@@ -64,7 +64,7 @@ public class FXMLLoginController implements Initializable {
                     try {
                         scene = new Scene(fxmlLoader.load());
                         Stage stage = new Stage();
-                        stage.setTitle("New Window");
+                        stage.setTitle("Poczekalnia IRC");
                         stage.setScene(scene);
                         stage.show();
                         

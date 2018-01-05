@@ -10,8 +10,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.stage.Stage;
 
 /**
  *
@@ -20,10 +22,14 @@ import java.util.logging.Logger;
 public class IRCSingleton {
    private static IRCSingleton instance = null;
    
-   private LobbyInfo lobbyInfo;
-   private ClientInfo clientInfo;
-   private ServerInfo serverInfo;
-   private Socket serverSocket;
+    private LobbyInfo lobbyInfo;
+    private ClientInfo clientInfo;
+    private ServerInfo serverInfo;
+    private Socket serverSocket;
+   
+    
+    private HashMap<String,FXMLPmController> userChatControllers; 
+    //private HashMap<String,Stage> roomChatControllers; 
    
    private FXMLLobbyController fXMLLobbyController;
    
@@ -31,6 +37,8 @@ public class IRCSingleton {
         lobbyInfo = new LobbyInfo();
         clientInfo = new ClientInfo();
         serverInfo = new ServerInfo();
+        userChatControllers = new HashMap<>(); 
+        //roomChatControllers = new HashMap<>(); 
        try {
            serverSocket = new Socket(serverInfo.getName(), serverInfo.getMainPort());
        } catch (IOException ex) {
@@ -111,6 +119,13 @@ public class IRCSingleton {
     public void setfXMLLobbyController(FXMLLobbyController fXMLLobbyController) {
         this.fXMLLobbyController = fXMLLobbyController;
     }
-    
-    
+
+    public HashMap<String, FXMLPmController> getUserChatControllers() {
+        return userChatControllers;
+    }
+
+    public void setUserChatControllers(HashMap<String, FXMLPmController> userChatControllers) {
+        this.userChatControllers = userChatControllers;
+    }
+
 }

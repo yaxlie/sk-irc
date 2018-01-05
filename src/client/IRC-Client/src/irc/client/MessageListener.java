@@ -48,7 +48,22 @@ public class MessageListener implements Runnable{
                 byte[] buffer = new byte[IRCMessage.STRUCT_SIZE];
                 is.read(buffer);
                 IRCMessage msg = new IRCMessage(buffer);
+                int type = msg.getmType();
+                //TODO w zaleznosci od type, room or pm
+                
+                String receiver = msg.getReceiver();
+                System.out.println(receiver.length());
+//                System.out.println(receiver + ".");
+//                System.out.println(irc.getClientInfo().getNickname()+ ".");
+
+                FXMLPmController contr = irc.getUserChatControllers().get(receiver);
+                System.out.println(receiver.length());
+                if(contr != null)
+                    contr.getMsgArea().appendText("\n" + msg.getSender().substring(0,19) + ": " + msg.getText());
+                else
+                    System.out.println("contr is null in MessageListener");
                 System.out.println(msg.getText()); 
+                
                 socket.close();
             } catch (IOException ex) {
                 Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);

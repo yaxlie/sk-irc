@@ -63,10 +63,10 @@ public class IRCMessage {
             receiver = message.substring(receiverBegin, dateBegin);
             date = message.substring(dateBegin, bytes.length);
             
-            text = trimZeros(text);
-            sender = trimZeros(sender);
-            receiver = trimZeros(receiver);
-            date = trimZeros(date);
+//            text = trimZeros(text);
+//            sender = trimZeros(sender);
+//            receiver = trimZeros(receiver);
+//            date = trimZeros(date);
             
             
         } catch (UnsupportedEncodingException ex) {
@@ -76,7 +76,8 @@ public class IRCMessage {
   
   static String trimZeros(String str) {
             int pos = str.indexOf(0);
-            return pos == -1 ? str : str.substring(0, pos);
+            String s = str.substring(0, pos) + " ";
+            return pos == -1 ? str : s;
         }
 
     public String getText() {

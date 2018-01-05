@@ -20,6 +20,8 @@ public class ClientInfo {
         return nickname;
     }
 
+    
+    //<19
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }

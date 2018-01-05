@@ -5,6 +5,7 @@
  */
 package irc.client;
 
+import com.sun.javafx.scene.control.skin.LabeledText;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -16,11 +17,17 @@ import java.util.logging.Logger;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
 /**
  *
@@ -49,39 +56,63 @@ public class FXMLLobbyController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         irc.setfXMLLobbyController(this);
-//       try {
-////            Socket clientSocket = new Socket("localhost", 12345);
-//            InputStream is = irc.getServerSocket().getInputStream();
-//            byte[] buffer = new byte[320];
-//            is.read(buffer);
-//            
-//            IRCMessage message = new IRCMessage(buffer);
-//            
-//            
-//            String msg = message.getText()+message.getSender()+message.getReceiver()+message.getDate();
-//            System.out.println(msg);
-//        } catch (IOException ex) {
-//            Logger.getLogger(FXMLLobbyController.class.getName()).log(Level.SEVERE, null, ex);
-//        }
 
-        joinButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                System.out.println("Próba wysyłania");
-                OutputStream os = null;
-                try {
-                    Socket socket = new Socket("localhost", irc.getClientInfo().getMsgPort());
-                    os = socket.getOutputStream();
-                    String m = "wiadomosc proba";
-                    IRCMessage msg = new IRCMessage(1, "Wiadomosc", irc.getClientInfo().getNickname(),
-                        irc.getClientInfo().getNickname(), "data");
-                    os.write(msg.getByte());
-                    socket.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
+    userList.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        @Override
+        public void handle(MouseEvent e) {
+            if(e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2 &&
+               (e.getTarget() instanceof LabeledText || ((GridPane) e.getTarget()).getChildren().size() > 0)) {
+               int id = userList.getSelectionModel().getSelectedIndex();
+               String cName = irc.getLobbyInfo().getUsers().get(id).getName();
+               System.out.println("clicked on " + cName);   
+               
+               if(irc.getUserChatControllers().get(cName) != null){
+                   irc.getUserChatControllers().get(cName).getStage().toFront();
+               }
+               else{
+                       Stage stage = newStagePm("FXMLPm.fxml", cName);         
+                       //irc.getUserChatControllers().put(cName, stage);
+                       stage.setOnCloseRequest( event -> {
+                            irc.getUserChatControllers().remove(cName);
+                       });
+                       stage.show();
+               }
+            }    
+        }
+    });
+        
+    roomList.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        @Override
+        public void handle(MouseEvent e) {
+            if(e.getButton() == MouseButton.PRIMARY && e.getClickCount() == 2 &&
+               (e.getTarget() instanceof LabeledText || ((GridPane) e.getTarget()).getChildren().size() > 0)) {
+               int id = userList.getSelectionModel().getSelectedIndex();
+               String cName = irc.getLobbyInfo().getRooms().get(id).getName();
+               System.out.println("clicked on " + cName);     
+               
+               
+            }    
+        }
+    });
+
+//        joinButton.setOnAction(new EventHandler<ActionEvent>() {
+//            @Override
+//            public void handle(ActionEvent event) {
+//                System.out.println("Próba wysyłania");
+//                OutputStream os = null;
+//                try {
+//                    Socket socket = new Socket("localhost", irc.getClientInfo().getMsgPort());
+//                    os = socket.getOutputStream();
+//                    String m = "wiadomosc proba";
+//                    IRCMessage msg = new IRCMessage(1, "Wiadomosc", irc.getClientInfo().getNickname(),
+//                        irc.getClientInfo().getNickname(), "data");
+//                    os.write(msg.getByte());
+//                    socket.close();
+//                } catch (IOException ex) {
+//                    Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+//            }
+//        });
                 
         LobbyListener ll = new LobbyListener(true);
         Thread thread = new Thread(ll);
@@ -100,5 +131,24 @@ public class FXMLLobbyController implements Initializable {
         return roomList;
     }
     
-    
+    public Stage newStagePm(String fxmlfile, String title){
+        try {
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(getClass().getResource(fxmlfile));
+            Scene scene;
+            scene = new Scene(fxmlLoader.load());
+            Stage stage = new Stage();
+            stage.setTitle(title);
+            stage.setScene(scene);
+            
+            FXMLPmController controller = (FXMLPmController)fxmlLoader.getController();
+            controller.setStage(stage);
+            irc.getUserChatControllers().put(title, controller);
+
+            return stage;
+        } catch (IOException ex) {
+            Logger.getLogger(FXMLLobbyController.class.getName()).log(Level.SEVERE, null, ex);
+        }   
+        return null;
+    }
 }

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public class LobbyInfo {
     private ArrayList<User>users = new ArrayList<>();
     private ArrayList<Room>rooms = new ArrayList<>();
+    
 
     public ArrayList<User> getUsers() {
         return users;
@@ -49,4 +50,12 @@ public class LobbyInfo {
         return list;
     }
     
+    public int getPort(String name){
+        for(User u : users){
+            if(u.getName().equals(name)){
+                return u.getPort();
+            }
+        }
+        return 0;
+    }
 }
