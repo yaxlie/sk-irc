@@ -44,12 +44,12 @@ struct Room
 struct Message
 {
     //do konfiguracji/przelaczania
-	char type[20];//dodane
     int config;
     char text[240];
     char sender[20];
     char receiver[20];
     char date[40];
+    char type[20];
 };
 
 struct Th_message
@@ -122,7 +122,6 @@ void *SendMessageBehavior(void *t_message)
         pthread_exit(NULL);
 }
 
-
 //funkcja opisujÄ…cÄ… zachowanie wÄ…tku - musi przyjmowaÄ‡ argument typu (void *) i zwracaÄ‡ (void *)
 void *SendLobbyBehavior(void *arg)
 {
@@ -138,6 +137,7 @@ void *SendLobbyBehavior(void *arg)
     }
     write(connection_socket_descriptor, &(*t_data_main).data, sizeof(struct data2send));
     printf("[server]: (%d, %s) - Wyslano lobby do klienta.\n", id, (*t_data_main).data.users[id].name);
+    close(connection_socket_descriptor);
     pthread_exit(NULL);
 }
 
@@ -172,7 +172,7 @@ void *ClientMsgBehavior(void *arg)
             close(connection_socket_descriptor);
             //TODO msg.config JEST ZLE CZYTANY (ZLA KONWERSJA Z JAVY?)
             
-            int i;
+int i;
             printf("[server]: (%d, %s) - Odebrano wiadomość, przetwarzanie...\n", id, (*t_data_main).data.users[id].name);
             //printf("[server]: %d.\n%s.\n%s.\n%s.\n%s.\n",msg.config, msg.text, msg.sender, msg.receiver, msg.date);
             int ii = 0;
@@ -246,18 +246,25 @@ void *ClientMsgBehavior(void *arg)
 				}
 			}else if(strncmp(msg.type,"14",2)==0){
 				printf("Otrzymano prosbe o wylogowanie\n");
+				printf("Nie testowano\n");
 				while(ii < MAX_USERS){
-					if(strncmp((*t_data_main).data.User[ii].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
-						strncpy((*t_data_main).data.User[ii].name,"",20);
+					if(strncmp((*t_data_main).data.users[ii].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
+						strncpy((*t_data_main).data.users[ii].name,"",20);
 						break;
 					}
 				}
+				
 				int iiw = 0;
 				while(iiw < MAX_ROOMS){
-					strncmp((*t_data_main).data.listaPokojow[iiw].users[
+					while(ii < 10){
+						if(strncmp((*t_data_main).data.listaPokojow[iiw].users[ii].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
+							strncmp((*t_data_main).data.listaPokojow[iiw].users[ii].name,"",20);
+						}
+						ii = ii + 1;
+					}
+					iiw = iiw + 1;
 				}
 				printf("Nie znaleziono uz o podanym  niku");
-			}
 			}else{
 				printf("Nie poprawne gowno\n");
 			}
@@ -265,6 +272,7 @@ void *ClientMsgBehavior(void *arg)
     
     pthread_exit(NULL);
 }
+
 
 
 //funkcja obsĹ‚ugujÄ…ca poĹ‚Ä…czenie z nowym klientem
