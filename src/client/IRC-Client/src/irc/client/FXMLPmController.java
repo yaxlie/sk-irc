@@ -63,7 +63,7 @@ public class FXMLPmController implements Initializable {
             os = socket.getOutputStream();
             String m = msgField.getText();
             IRCMessage msg = new IRCMessage(1, m, irc.getClientInfo().getNickname(),
-                stage.getTitle(), "data");
+                stage.getTitle(), "data", "0");
             os.write(msg.getByte());
             socket.close();
 

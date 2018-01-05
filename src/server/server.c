@@ -49,6 +49,7 @@ struct Message
     char sender[20];
     char receiver[20];
     char date[40];
+    char type[20];
 };
 
 struct Th_message
