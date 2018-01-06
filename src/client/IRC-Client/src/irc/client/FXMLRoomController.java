@@ -12,11 +12,13 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -30,13 +32,15 @@ public class FXMLRoomController implements Initializable {
     
    private IRCSingleton irc = IRCSingleton.getInstance();
     
-    
+    private int id=0;
     @FXML
     private Button button;
     @FXML
     private TextField msgField;
     @FXML
     private TextArea msgArea;
+    @FXML
+    private ListView userList;
     
     private Stage stage;
     
@@ -51,6 +55,7 @@ public class FXMLRoomController implements Initializable {
             sendMsg();
         }
     });
+        refreshList();
     }   
 
     @FXML
@@ -91,4 +96,21 @@ public class FXMLRoomController implements Initializable {
     public void setStage(Stage stage) {
         this.stage = stage;
     }  
+
+    public ListView getUserList() {
+        return userList;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    public void refreshList(){
+        userList.setItems(FXCollections.observableArrayList(irc.getLobbyInfo().getRooms().get(id).getUserNames()));
+    }
+    
 }

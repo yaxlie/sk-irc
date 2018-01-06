@@ -18,6 +18,9 @@ import javafx.stage.Stage;
  */
 public class IRCClient extends Application {
     
+    public static final int ROOMS = 10;
+    public static final int USERS = 100;
+    
     private IRCSingleton irc = IRCSingleton.getInstance();
     
     

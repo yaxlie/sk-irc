@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -66,6 +67,12 @@ public class LobbyListener implements Runnable{
                             setItems(FXCollections.observableArrayList(roomList));
                      }
                     });
+                    
+                    //odswież listę użytkowników dla każdego otwartego okna pokoju
+                    for (FXMLRoomController r : irc.getRoomChatControllers().values()) {
+                        r.refreshList();
+                    }
+                    
                 // }
                  socket.close();
             } catch (IOException ex) {

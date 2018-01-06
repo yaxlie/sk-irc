@@ -85,7 +85,7 @@ public class FXMLLobbyController implements Initializable {
                }
                else{
                        irc.joinRoomRequest(cName);
-                       newStageRoom(cName);         
+                       newStageRoom(cName, id);         
                }
             }    
         }
@@ -162,7 +162,7 @@ public class FXMLLobbyController implements Initializable {
         return stage;
     }
     
-    public Stage newStageRoom(String title){
+    public Stage newStageRoom(String title, int id){
         Stage stage = null;
         FXMLLoader fxmlLoader = new FXMLLoader();
         
@@ -176,6 +176,7 @@ public class FXMLLobbyController implements Initializable {
             
             FXMLRoomController controller = (FXMLRoomController)fxmlLoader.getController();
             controller.setStage(stage);
+            controller.setId(id);
             irc.getRoomChatControllers().put(title, controller);
 
         } catch (IOException ex) {

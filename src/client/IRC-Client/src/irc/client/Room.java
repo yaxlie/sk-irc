@@ -62,8 +62,14 @@ public class Room {
     public void setrSize(int rSize) {
         this.rSize = rSize;
     }
+    
+    public ArrayList<String> getUserNames(){
+        ArrayList<String> list = new ArrayList<>();
+        for (User u : users){
+            list.add(u.getName());
+        }
+        return list;
+    }
 
-    
-    
-    
+ 
 }
