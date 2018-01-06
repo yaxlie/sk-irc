@@ -105,7 +105,7 @@ public class MessageListener implements Runnable{
     
         private void showRM(String sender, IRCMessage msg){
         FXMLPmController contr = irc.getUserChatControllers().get(sender);
-                
+                System.out.println(msg.getText(true) + "\n" + msg.getSender(true)+".");
                 if(contr == null){
                     Platform.runLater(new Runnable(){
                     @Override
