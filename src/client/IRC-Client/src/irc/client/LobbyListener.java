@@ -53,11 +53,14 @@ public class LobbyListener implements Runnable{
                     LobbyDataProcessing lobbyDataProcessing = new LobbyDataProcessing(buffer);
                     lobbyDataProcessing.process();
 
+                    //ustaw listę użytkowników w lobby
                     ArrayList<String> userList = irc.getLobbyInfo().getUserNames();
-                    System.out.println(userList.size());
                     irc.getfXMLLobbyController().getUserList().
                             setItems(FXCollections.observableArrayList(userList));
                     
+
+                    
+                    //ustaw listę pokojów w lobby
                     ArrayList<String> roomList = irc.getLobbyInfo().getRoomNames();
                     //System.out.println(userList.size());
                     Platform.runLater(new Runnable(){
