@@ -112,5 +112,5 @@ public class FXMLRoomController implements Initializable {
     public void refreshList(){
         userList.setItems(FXCollections.observableArrayList(irc.getLobbyInfo().getRooms().get(id).getUserNames()));
     }
-    
+ 
 }

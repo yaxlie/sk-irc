@@ -105,14 +105,14 @@ public class MessageListener implements Runnable{
     }
     
         private void showRM(String sender, IRCMessage msg){
-        FXMLPmController contr = irc.getUserChatControllers().get(sender);
+        FXMLRoomController contr = irc.getRoomChatControllers().get(sender);
                 //System.out.println(msg.getText(true) + "\n" + msg.getSender(true)+".");
                 if(contr == null){
                     Platform.runLater(new Runnable(){
                     @Override
                     public void run() {
-                        irc.getfXMLLobbyController().newStagePm(sender);
-                        FXMLPmController contr = irc.getUserChatControllers().get(sender);
+                        irc.getfXMLLobbyController().newStageRoom(sender, irc.getLobbyInfo().getRoomId(sender));
+                        FXMLRoomController contr = irc.getRoomChatControllers().get(sender);
                         contr.getMsgArea().appendText("\n" + msg.getType(true) + ": " + msg.getText(true));
                     }
                     // ...

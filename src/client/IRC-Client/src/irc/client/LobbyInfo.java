@@ -58,4 +58,14 @@ public class LobbyInfo {
         }
         return 0;
     }
+    
+    public int getRoomId(String nazwa){
+        int i = 0;
+        for(Room r : rooms){
+            if(nazwa.equals(r.getName()))
+                return i;
+            i++;
+        }
+        return 0;
+    }
 }
