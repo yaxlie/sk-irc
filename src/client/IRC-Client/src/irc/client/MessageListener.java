@@ -40,11 +40,11 @@ public class MessageListener implements Runnable{
     public void run() {
         InputStream is;
         while(active){
-        try {
-           socket = new Socket(irc.getServerInfo().getName(), port);
-       } catch (IOException ex) {
-           Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
-       }
+            try {
+               socket = new Socket(irc.getServerInfo().getName(), port);
+            } catch (IOException ex) {
+               Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+            }
                     
             try {
                 is = socket.getInputStream();        
@@ -57,21 +57,16 @@ public class MessageListener implements Runnable{
                 
                 String sender = msg.getSender(false);
 
-                FXMLPmController contr = irc.getUserChatControllers().get(sender);
-                
-                if(contr == null){
-                    Platform.runLater(new Runnable(){
-                    @Override
-                    public void run() {
-                        irc.getfXMLLobbyController().newStagePm(sender);
-                        FXMLPmController contr = irc.getUserChatControllers().get(sender);
-                        contr.getMsgArea().appendText("\n" + msg.getSender(true) + ": " + msg.getText(true));
-                    }
-                    // ...
-                    });
+                switch(config){
+                    case 1:
+                        showPM(sender, msg);
+                        break;
+                    case 2:
+                        showRM(sender, msg);
+                        break;
+                    default:
+                        break;  
                 }
-                else
-                    contr.getMsgArea().appendText("\n" + msg.getSender(true) + ": " + msg.getText(true));
                 
             } catch (IOException ex) {
                 Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
@@ -90,4 +85,39 @@ public class MessageListener implements Runnable{
         this.active = active;
     }
     
+    private void showPM(String sender, IRCMessage msg){
+        FXMLPmController contr = irc.getUserChatControllers().get(sender);
+                
+                if(contr == null){
+                    Platform.runLater(new Runnable(){
+                    @Override
+                    public void run() {
+                        irc.getfXMLLobbyController().newStagePm(sender);
+                        FXMLPmController contr = irc.getUserChatControllers().get(sender);
+                        contr.getMsgArea().appendText("\n" + msg.getSender(true) + ": " + msg.getText(true));
+                    }
+                    // ...
+                    });
+                }
+                else
+                    contr.getMsgArea().appendText("\n" + msg.getSender(true) + ": " + msg.getText(true));
+    }
+    
+        private void showRM(String sender, IRCMessage msg){
+        FXMLPmController contr = irc.getUserChatControllers().get(sender);
+                
+                if(contr == null){
+                    Platform.runLater(new Runnable(){
+                    @Override
+                    public void run() {
+                        irc.getfXMLLobbyController().newStagePm(sender);
+                        FXMLPmController contr = irc.getUserChatControllers().get(sender);
+                        contr.getMsgArea().appendText("\n" + msg.getType(true) + ": " + msg.getText(true));
+                    }
+                    // ...
+                    });
+                }
+                else
+                    contr.getMsgArea().appendText("\n" + msg.getType(true) + ": " + msg.getText(true));
+    }
 }

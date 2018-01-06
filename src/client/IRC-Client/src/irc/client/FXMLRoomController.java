@@ -55,7 +55,29 @@ public class FXMLRoomController implements Initializable {
 
     @FXML
     private void sendMsg(){
-        //TODO
+                System.out.println("[client]: Wysyłanie...");
+        OutputStream os = null;
+        try {
+            Stage stage = (Stage) button.getScene().getWindow();
+
+            Socket socket = new Socket(irc.getServerInfo().getName(), irc.getClientInfo().getMsgPort());
+            os = socket.getOutputStream();
+            String m = msgField.getText();
+            System.out.println(stage.getTitle()+".");
+            IRCMessage msg = new IRCMessage(1, m, irc.getClientInfo().getNickname(),
+                stage.getTitle(), "data", "15");
+            os.write(msg.getByte());
+            socket.close();
+
+            msgField.setText("");
+            msgField.requestFocus();
+
+            //TODO server powinien wyslac tez do mnie i dopiero wtedy to odczytac
+            msgArea.appendText("\n" + irc.getClientInfo().getNickname() + ": " + m);
+
+        } catch (IOException ex) {
+            Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public TextArea getMsgArea() {

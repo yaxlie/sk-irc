@@ -146,13 +146,13 @@ void *SendMessageToRoomBehavior(void *t_message)
     struct Th_message *msg = (struct Th_message*)t_message;
     struct Message to_send = (*msg).msg;
     
-     printf("[server]: Utworzono nowy wątek do wysłania wiadomości.\n",(*msg).i);
+     printf("[server]: Utworzono nowy wątek do wysłania wiadomości.\n");
         //Janusz stajl
-     int fd = accept(((*msg).id + 1000), NULL, NULL);
+     int fd = accept((*t_data_main).umw[((*msg).i)], NULL, NULL);
                         printf("accept\n");
                         
-        printf("[server]: (%d, %s) - Wysyłanie wiadomości \n");
         write(fd,&to_send, sizeof(to_send));
+        printf("[server]: (%d, %s) - Wysłano wiadomość \n", (*msg).i, (*msg).receiver);
         close(fd);
         pthread_exit(NULL);
 }

@@ -171,7 +171,7 @@ public class IRCSingleton {
             Socket socket = new Socket(getServerInfo().getName(), getClientInfo().getMsgPort());
             os = socket.getOutputStream();
             IRCMessage msg = new IRCMessage(1, "logout", getClientInfo().getNickname(),
-                "server", "data", "0");
+                "server", "data", "14");
             os.write(msg.getByte());
             socket.close();
 
