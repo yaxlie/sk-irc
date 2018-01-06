@@ -60,8 +60,10 @@ public class IRCMessage {
         String message;
         StandardCharsets.UTF_8.name();
         try {
+            byte [] sub = Arrays.copyOfRange(bytes, 0, 4);
+            mConfig = (ByteBuffer.wrap(sub).getInt());
             message = new String(bytes, "UTF-8");   
-            mConfig = ByteBuffer.wrap(bytes).getInt();
+            
             text = message.substring(textBegin, senderBegin);
             sender = message.substring(senderBegin, receiverBegin);
             receiver = message.substring(receiverBegin, dateBegin);

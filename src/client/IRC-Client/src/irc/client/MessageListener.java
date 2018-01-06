@@ -56,6 +56,7 @@ public class MessageListener implements Runnable{
                 //TODO w zaleznosci od type, room or pm
                 
                 String sender = msg.getSender(false);
+                System.out.println(config);
 
                 switch(config){
                     case 1:
@@ -105,7 +106,7 @@ public class MessageListener implements Runnable{
     
         private void showRM(String sender, IRCMessage msg){
         FXMLPmController contr = irc.getUserChatControllers().get(sender);
-                System.out.println(msg.getText(true) + "\n" + msg.getSender(true)+".");
+                //System.out.println(msg.getText(true) + "\n" + msg.getSender(true)+".");
                 if(contr == null){
                     Platform.runLater(new Runnable(){
                     @Override

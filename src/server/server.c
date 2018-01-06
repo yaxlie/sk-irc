@@ -108,6 +108,7 @@ void *SendMessageBehavior(void *t_message)
     //pthread_detach(pthread_self());
     struct Th_message *msg = (struct Th_message*)t_message;
     struct Message to_send = (*msg).msg;
+    to_send.config = htonl(to_send.config);
     
      printf("[server]: Utworzono nowy wątek do wysłania wiadomości.\n",(*msg).i);
         
@@ -185,8 +186,9 @@ int i;
 							struct Th_message th_message;
 							th_message.id = id;
 							th_message.msg = msg;
+                                                        th_message.msg.config = 1;
 							th_message.i = ii;
-                                                        							int create_result = pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message);
+                                                        int create_result = pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message);
 							if (create_result){
 								printf(" [server]: Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
 								exit(-1);
