@@ -300,21 +300,24 @@ int i;
 									if(strncmp((*t_data_main).data.users[iiq].name,(*t_data_main).data.listaPokojow[ii].users[iiw].name,sizeof(*t_data_main).data.listaPokojow[ii].users[iiw].name) == 0){
 										th_message.i = iiq;
 										th_message.id = id;
+										
+										th_message.msg = msg;
+										th_message.msg.config = 2;
+										strncpy(th_message.msg.sender,(*t_data_main).data.listaPokojow[ii].name,sizeof((*t_data_main).data.listaPokojow[ii].name));
+										strncpy(th_message.msg.type, msg.sender,sizeof(msg.sender));
+										strncpy(th_message.msg.receiver, (*t_data_main).data.listaPokojow[ii].users[iiw].name,sizeof((*t_data_main).data.listaPokojow[ii].users[iiw].name));
+																		//printf("test room id:%d i:%d receiver:%s sender:%s config:%d",th_message.id, th_message.i, th_message.msg.receiver,th_message.msg.sender, th_message.msg.config );
+										int create_result = pthread_create(&thread1[i], NULL, SendMessageBehavior, (void *)&th_message);
+										if (create_result){
+											printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
+											exit(-1);
+								}
+										
 										break;
 									}
 									iiq = iiq + 1;
 								}
-								th_message.msg = msg;
-								th_message.msg.config = 2;
-								strncpy(th_message.msg.sender,(*t_data_main).data.listaPokojow[ii].name,sizeof((*t_data_main).data.listaPokojow[ii].name));
-								strncpy(th_message.msg.type, msg.sender,sizeof(msg.sender));
-								strncpy(th_message.msg.receiver, (*t_data_main).data.listaPokojow[ii].users[iiw].name,sizeof((*t_data_main).data.listaPokojow[ii].users[iiw].name));
-                                                                //printf("test room id:%d i:%d receiver:%s sender:%s config:%d",th_message.id, th_message.i, th_message.msg.receiver,th_message.msg.sender, th_message.msg.config );
-								int create_result = pthread_create(&thread1[i], NULL, SendMessageBehavior, (void *)&th_message);
-								if (create_result){
-									printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
-									exit(-1);
-								}
+
 							}
 							iiw = iiw + 1;
 						}
