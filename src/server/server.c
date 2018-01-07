@@ -110,7 +110,7 @@ void *SendMessageBehavior(void *t_message)
     struct Message to_send = (*msg).msg;
     to_send.config = htonl(to_send.config);
     
-     printf("[server]: Utworzono nowy wątek do wysłania wiadomości.\n",(*msg).i);
+     printf("[server]: Utworzono nowy wątek do wysłania wiadomości.\n");
      printf("test room id:%d i:%d",(*msg).id, (*msg).i);   
      int fd = accept((*t_data_main).umw[(*msg).i], NULL, NULL);
                         printf("accept\n");
@@ -126,7 +126,7 @@ void *SendMessageBehavior(void *t_message)
 void *SendLobbyBehavior(void *arg)
 {
     pthread_detach(pthread_self());
-    int id = (int*) arg;
+    int id = (int) arg;
      //printf("%d\n", id);
     
     int connection_socket_descriptor = accept((*t_data_main).uls[id], NULL, NULL);
@@ -145,13 +145,12 @@ void *SendLobbyBehavior(void *arg)
 void *ClientMsgBehavior(void *arg)
 {
     pthread_detach(pthread_self());
-    int id = (int*) arg;
+    int id = (int) arg;
     //printf("%d\n", id);
     
     printf("[server]: (%d, %s) - Stworzono nowy wątek do przetwarzania wiadomości. Czekanie na połączenie...\n", id, (*t_data_main).data.users[id].name);
     
 	struct Message msg;
-        char m[sizeof(struct Message)];
         /*struct Message m;
         strncpy(m.text, msg, sizeof(m.text));
         strncpy(m.sender, "server", sizeof(m.sender));
@@ -195,8 +194,8 @@ int i;
                                                         th_message[1].msg.config = 1;
 							th_message[1].i = id;
                                                         
-                                                        int create_result = pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message[0]);
-                                                        int create_result2 = pthread_create(&thread2, NULL, SendMessageBehavior, (void *)&th_message[1]);
+                                                         pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message[0]);//kontrola bledow #todo
+                                                         pthread_create(&thread2, NULL, SendMessageBehavior, (void *)&th_message[1]);
 							break;
 						}
 				   
@@ -229,7 +228,7 @@ int i;
 										th_message[0].msg = msg;
 										th_message[0].msg.config = 128; 
 										strncpy(th_message[0].msg.text,"Nie udalo sie wyslac wiadomosci",sizeof("Nie udalo sie wyslac wiadomosci"));
-										int create_result = pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);
+										pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);//todo kontrola bledow
 										}
 									}
 								}
@@ -280,7 +279,7 @@ int i;
 										th_message[0].msg = msg;
 										th_message[0].msg.config = 128; 
 										strncpy(th_message[0].msg.text,"Nie udalo sie wyslac wiadomosci",sizeof("Nie udalo sie wyslac wiadomosci"));
-										int create_result = pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);
+										pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);//todo kontrola bledow
 										
 								}
 							}
@@ -338,7 +337,7 @@ int i;
 										th_message[0].msg = msg;
 										th_message[0].msg.config = 128; 
 										strncpy(th_message[0].msg.text,"Nie udalo sie wyslac wiadomosci",sizeof("Nie udalo sie wyslac wiadomosci"));
-										int create_result = pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);
+										pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);//#todo kontrola bledow
 										}
 								
 										
@@ -378,8 +377,6 @@ void handleConnection(int connection_socket_descriptor) {
     //dane, ktĂłre zostanÄ… przekazane do wÄ…tku
     struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
     (*th_data).sfd = connection_socket_descriptor;
-    struct data_lobby d_lobby;
-    d_lobby.main_data = (*th_data);
 
     char msg[20];      
     if(read((*th_data).sfd,msg,sizeof(msg))){
@@ -423,7 +420,6 @@ void handleConnection(int connection_socket_descriptor) {
 int createSocket(int port)
 {
    int server_socket_descriptor;
-   int connection_socket_descriptor;
    int bind_result;
    int listen_result;
    char reuse_addr_val = 1;
