@@ -71,8 +71,6 @@ public class FXMLPmController implements Initializable {
             msgField.setText("");
             msgField.requestFocus();
 
-            //TODO server powinien wyslac tez do mnie i dopiero wtedy to odczytac
-            msgArea.appendText("\n" + irc.getClientInfo().getNickname() + ": " + m);
 
         } catch (IOException ex) {
             Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);

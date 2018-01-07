@@ -62,10 +62,13 @@ public class LobbyInfo {
     public int getRoomId(String nazwa){
         int i = 0;
         for(Room r : rooms){
-            if(nazwa.equals(r.getName()))
+            if(nazwa.equals(r.getName())){
+                System.out.println(i);
                 return i;
+            }
             i++;
         }
+        System.out.println("nie znaleziono");
         return 0;
     }
 }

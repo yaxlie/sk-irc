@@ -111,7 +111,7 @@ void *SendMessageBehavior(void *t_message)
     to_send.config = htonl(to_send.config);
     
      printf("[server]: Utworzono nowy wątek do wysłania wiadomości.\n",(*msg).i);
-        
+     printf("test room id:%d i:%d",(*msg).id, (*msg).i);   
      int fd = accept((*t_data_main).umw[(*msg).i], NULL, NULL);
                         printf("accept\n");
                         
@@ -183,16 +183,21 @@ int i;
 					printf("[server]: Wyslij widomosc\n");
 					if(strncmp((*t_data_main).data.users[ii].name,msg.receiver,sizeof((*t_data_main).data.users[ii])) == 0){
 							pthread_t thread;
-							struct Th_message th_message;
-							th_message.id = id;
-							th_message.msg = msg;
-                                                        th_message.msg.config = 1;
-							th_message.i = ii;
-                                                        int create_result = pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message);
-							if (create_result){
-								printf(" [server]: Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
-								exit(-1);
-							}
+                                                        pthread_t thread2;
+                                                        
+							struct Th_message th_message[2];
+							th_message[0].id = id;
+							th_message[0].msg = msg;
+                                                        th_message[0].msg.config = 1;
+							th_message[0].i = ii;
+                                                        
+                                                        th_message[1].id = ii;
+							th_message[1].msg = msg;
+                                                        th_message[1].msg.config = 1;
+							th_message[1].i = id;
+                                                        
+                                                        int create_result = pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message[0]);
+                                                        int create_result2 = pthread_create(&thread2, NULL, SendMessageBehavior, (void *)&th_message[1]);
 							break;
 						}
 				   
@@ -294,20 +299,19 @@ int i;
 							if((*t_data_main).data.listaPokojow[ii].users[iiw].port != 0)
 							{
 								printf("cos sie dzieje\n");
-								struct Th_message th_message;
 								int iiq = 0;
+                                                                struct Th_message th_message[10];
 								while(iiq < MAX_USERS){
 									if(strncmp((*t_data_main).data.users[iiq].name,(*t_data_main).data.listaPokojow[ii].users[iiw].name,sizeof(*t_data_main).data.listaPokojow[ii].users[iiw].name) == 0){
-										th_message.i = iiq;
-										th_message.id = id;
-										
-										th_message.msg = msg;
-										th_message.msg.config = 2;
-										strncpy(th_message.msg.sender,(*t_data_main).data.listaPokojow[ii].name,sizeof((*t_data_main).data.listaPokojow[ii].name));
-										strncpy(th_message.msg.type, msg.sender,sizeof(msg.sender));
-										strncpy(th_message.msg.receiver, (*t_data_main).data.listaPokojow[ii].users[iiw].name,sizeof((*t_data_main).data.listaPokojow[ii].users[iiw].name));
-																		//printf("test room id:%d i:%d receiver:%s sender:%s config:%d",th_message.id, th_message.i, th_message.msg.receiver,th_message.msg.sender, th_message.msg.config );
-										int create_result = pthread_create(&thread1[i], NULL, SendMessageBehavior, (void *)&th_message);
+										th_message[iiq].i = iiq;
+										th_message[iiq].id = id;
+										th_message[iiq].msg = msg;
+										th_message[iiq].msg.config = 2;
+										strncpy(th_message[iiq].msg.sender,(*t_data_main).data.listaPokojow[ii].name,sizeof((*t_data_main).data.listaPokojow[ii].name));
+										strncpy(th_message[iiq].msg.type, msg.sender,sizeof(msg.sender));
+										strncpy(th_message[iiq].msg.receiver, (*t_data_main).data.listaPokojow[ii].users[iiw].name,sizeof((*t_data_main).data.listaPokojow[ii].users[iiw].name));
+																		//printf("przed wątkiem id:%d i:%d receiver:%s sender:%s config:%d",th_message.id, th_message.i, th_message.msg.receiver,th_message.msg.sender, th_message.msg.config );
+										int create_result = pthread_create(&thread1[iiq], NULL, SendMessageBehavior, (void *)&th_message[iiq]);
 										if (create_result){
 											printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
 											exit(-1);

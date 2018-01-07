@@ -77,8 +77,6 @@ public class FXMLRoomController implements Initializable {
             msgField.setText("");
             msgField.requestFocus();
 
-            //TODO server powinien wyslac tez do mnie i dopiero wtedy to odczytac
-            msgArea.appendText("\n" + irc.getClientInfo().getNickname() + ": " + m);
 
         } catch (IOException ex) {
             Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
@@ -112,5 +110,4 @@ public class FXMLRoomController implements Initializable {
     public void refreshList(){
         userList.setItems(FXCollections.observableArrayList(irc.getLobbyInfo().getRooms().get(id).getUserNames()));
     }
- 
 }
