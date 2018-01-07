@@ -140,22 +140,37 @@ void *SendLobbyBehavior(void *arg)
     pthread_exit(NULL);
 }
 
+void sendLobbyToAll()
+{
+    pthread_t threadLobby[100];
+    int i;
+    for (i=0; i<MAX_USERS; i++)
+    {
+        //printf("%d ", (*th_data).data.users[i].port);
+        if((*t_data_main).data.users[i].port != 0)
+        {
+
+            pthread_create(&threadLobby[i], NULL, SendLobbyBehavior, (void*)i);
+        }
+    }
+}
 
 void *ClientMsgBehavior(void *arg)
 {
     pthread_detach(pthread_self());
     int id = (int) arg;
+    int active = 1;
     //printf("%d\n", id);
     
     printf("[server]: (%d, %s) - Stworzono nowy wątek do przetwarzania wiadomości. Czekanie na połączenie...\n", id, (*t_data_main).data.users[id].name);
-    
+    sendLobbyToAll();
 	struct Message msg;
         /*struct Message m;
         strncpy(m.text, msg, sizeof(m.text));
         strncpy(m.sender, "server", sizeof(m.sender));
         strncpy(m.receiver, "client", sizeof(m.receiver));
         strncpy(m.date, "10-10-2010", sizeof(m.date));*/
-        while(1)
+        while(active)
         {
             int connection_socket_descriptor = accept((*t_data_main).ums[id], NULL, NULL);
             if (connection_socket_descriptor < 0)
@@ -255,6 +270,7 @@ int i;
 					}
 					ii = ii + 1;
 				}
+                                sendLobbyToAll();
 			}else if(strncmp(msg.type,"14",2)==0){
 				printf("[server]: Otrzymano prosbe o wylogowanie\n");
 				while(ii < MAX_USERS){
@@ -303,6 +319,8 @@ int i;
 					ii = 0;
 					iiw = iiw + 1;
 				}
+                                active = 0;
+                                sendLobbyToAll();
 			}else if((strncmp(msg.type,"15",2)==0)){
 				printf("[server]: Otrzymano prosbe o wyslanie wiadomosci do calego pokoju\n");
 				printf("Jezeli dziala drogi if i poprawnie tworzy watki to powinno dzilac\n");
@@ -359,7 +377,6 @@ int i;
 				printf("Nie poprawne gowno\n");
 			}
         }
-    
     pthread_exit(NULL);
 }
 
@@ -371,9 +388,7 @@ void handleConnection(int connection_socket_descriptor) {
     int create_result = 0;
 
     //uchwyt na wÄ…tek
-    pthread_t thread1[100];
     pthread_t thread2;
-
 
     //dane, ktĂłre zostanÄ… przekazane do wÄ…tku
     struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
@@ -391,30 +406,15 @@ void handleConnection(int connection_socket_descriptor) {
         write((*th_data).sfd, &conv_port, sizeof(conv_port));
         printf("[server]: (?, %s) - Przydzielono port %d dla użytkwnika!\n", msg, port);
         
+        
         create_result = pthread_create(&thread2, NULL, ClientMsgBehavior, (void*)id);
-       create_result = pthread_create(&thread2, NULL, ClientMsgBehavior, (void*)id);
         if (create_result){
         printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
         exit(-1);
         }
         
         //send lobby data
-        int i;
-        for (i=0; i<MAX_USERS; i++)
-        {
-            //printf("%d ", (*th_data).data.users[i].port);
-            if((*th_data).data.users[i].port != 0)
-            {
-                
-                create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
-                 //printf("nowy watek\n");
-                if (create_result){
-                printf("Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
-                exit(-1);
-                }
-            }
-        }
-        //printf("\n");
+       sendLobbyToAll();
     }
 }
 

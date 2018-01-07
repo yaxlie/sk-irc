@@ -60,6 +60,7 @@ public class LobbyListener implements Runnable{
                     ArrayList<String> userList = irc.getLobbyInfo().getUserNames();
                     irc.getfXMLLobbyController().getUserList().
                             setItems(FXCollections.observableArrayList(userList));
+                    System.out.println(userList);
                     
 
                     

@@ -12,8 +12,11 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -112,7 +115,7 @@ public class IRCSingleton {
                  FXMLLoader fxmlLoader = new FXMLLoader();
                  fxmlLoader.setLocation(getClass().getResource("FXMLLobby.fxml"));
                  Scene scene;
-                 try {
+                 try {   
                      scene = new Scene(fxmlLoader.load());
                      Stage stage = new Stage();
                      stage.setTitle("Poczekalnia IRC");
@@ -125,6 +128,25 @@ public class IRCSingleton {
                     });
                      stage.setScene(scene);
                      stage.show();
+//                     
+//                    try {
+//                        TimeUnit.SECONDS.sleep(1);
+//                    } catch (InterruptedException ex) {
+//                        Logger.getLogger(FXMLRoomController.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
+//                     
+//                    ArrayList<String> userList = getLobbyInfo().getUserNames();
+//                    getfXMLLobbyController().getUserList().setItems(FXCollections.observableArrayList(userList));
+//                    
+//                    ArrayList<String> roomList = getLobbyInfo().getRoomNames();
+//                    //System.out.println(userList.size());
+//                    Platform.runLater(new Runnable(){
+//                     @Override
+//                     public void run() {
+//                         getfXMLLobbyController().getRoomList().
+//                            setItems(FXCollections.observableArrayList(roomList));
+//                     }
+//                    });
 
                      stage = (Stage) button.getScene().getWindow();
                      // do what you have to do
