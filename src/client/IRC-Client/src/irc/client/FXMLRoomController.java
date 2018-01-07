@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.collections.FXCollections;
@@ -59,6 +60,11 @@ public class FXMLRoomController implements Initializable {
             sendMsg();
         }
     });
+//       try {
+//           TimeUnit.MILLISECONDS.sleep(100);
+//       } catch (InterruptedException ex) {
+//           Logger.getLogger(FXMLRoomController.class.getName()).log(Level.SEVERE, null, ex);
+//       }
         refreshList();
     }   
 

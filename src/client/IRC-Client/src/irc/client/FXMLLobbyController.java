@@ -190,6 +190,7 @@ public class FXMLLobbyController implements Initializable {
         FXMLRoomController controller = (FXMLRoomController)fxmlLoader.getController();
         controller.setStage(stage);
         irc.getRoomChatControllers().put(title, controller);
+        controller.refreshList();
         stage.setOnCloseRequest( event -> {
             irc.getRoomChatControllers().remove(title);
             irc.leaveRoomRequest(title);
