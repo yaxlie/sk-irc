@@ -11,7 +11,6 @@
 #include <string.h>
 #include <time.h>
 #include <pthread.h>
-#include "stack.h"
 
 #define SERVER_PORT 12345
 #define MAX_USERS 100
