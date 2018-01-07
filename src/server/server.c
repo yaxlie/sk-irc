@@ -190,6 +190,8 @@ int i;
                                                         
                                                         th_message[1].id = ii;
 							th_message[1].msg = msg;
+                                                        strncpy(th_message[1].msg.receiver,msg.sender,sizeof(msg.sender));
+                                                        strncpy(th_message[1].msg.sender,msg.receiver,sizeof(msg.sender));
                                                         th_message[1].msg.config = 1;
 							th_message[1].i = id;
                                                         

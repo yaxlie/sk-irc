@@ -178,6 +178,8 @@ public class IRCSingleton {
         } catch (IOException ex) {
             Logger.getLogger(IRCSingleton.class.getName()).log(Level.SEVERE, null, ex);
         }
+        for(Thread t : threads)
+            t.interrupt();
     }
 
     public ArrayList<Thread> getThreads() {
