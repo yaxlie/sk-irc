@@ -142,7 +142,6 @@ void *SendLobbyBehavior(void *arg)
 }
 
 
-
 void *ClientMsgBehavior(void *arg)
 {
     pthread_detach(pthread_self());
@@ -218,11 +217,19 @@ int i;
 									//printf("%d ", (*th_data).data.users[i].port);
 									if((*t_data_main).data.users[i].port != 0)
 									{
+										//to chceck
 										int create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
 										 //printf("nowy watek\n");
 										if (create_result){
+										pthread_t threadl;
 										printf("[server]: Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
-										exit(-1);
+										struct Th_message th_message[2];
+										th_message[0].id = id;
+										th_message[0].i = i;
+										th_message[0].msg = msg;
+										th_message[0].msg.config = 128; 
+										strncpy(th_message[0].msg.text,"Nie udalo sie wyslac wiadomosci",sizeof("Nie udalo sie wyslac wiadomosci"));
+										int create_result = pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);
 										}
 									}
 								}
@@ -264,8 +271,17 @@ int i;
 								int create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
 								 //printf("nowy watek\n");
 								if (create_result){
-								printf("[server]: Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
-								exit(-1);
+										//to check
+										pthread_t threadl;
+										printf("[server]: Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+										struct Th_message th_message[2];
+										th_message[0].id = id;
+										th_message[0].i = i;
+										th_message[0].msg = msg;
+										th_message[0].msg.config = 128; 
+										strncpy(th_message[0].msg.text,"Nie udalo sie wyslac wiadomosci",sizeof("Nie udalo sie wyslac wiadomosci"));
+										int create_result = pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);
+										
 								}
 							}
 						}
@@ -313,9 +329,18 @@ int i;
 																		//printf("przed wątkiem id:%d i:%d receiver:%s sender:%s config:%d",th_message.id, th_message.i, th_message.msg.receiver,th_message.msg.sender, th_message.msg.config );
 										int create_result = pthread_create(&thread1[iiq], NULL, SendMessageBehavior, (void *)&th_message[iiq]);
 										if (create_result){
-											printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
-											exit(-1);
-								}
+											//to chceck
+										pthread_t threadl;
+										printf("[server]: Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+										struct Th_message th_message[2];
+										th_message[0].id = id;
+										th_message[0].i = i;
+										th_message[0].msg = msg;
+										th_message[0].msg.config = 128; 
+										strncpy(th_message[0].msg.text,"Nie udalo sie wyslac wiadomosci",sizeof("Nie udalo sie wyslac wiadomosci"));
+										int create_result = pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);
+										}
+								
 										
 										break;
 									}
@@ -369,6 +394,7 @@ void handleConnection(int connection_socket_descriptor) {
         printf("[server]: (?, %s) - Przydzielono port %d dla użytkwnika!\n", msg, port);
         
         create_result = pthread_create(&thread2, NULL, ClientMsgBehavior, (void*)id);
+       create_result = pthread_create(&thread2, NULL, ClientMsgBehavior, (void*)id);
         if (create_result){
         printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
         exit(-1);
