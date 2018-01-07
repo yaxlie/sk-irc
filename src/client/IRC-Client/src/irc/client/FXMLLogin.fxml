@@ -7,8 +7,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
-<AnchorPane id="AnchorPane" prefHeight="246.0" prefWidth="424.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8" fx:controller="irc.client.FXMLLoginController">
+<AnchorPane id="AnchorPane" prefHeight="246.0" prefWidth="424.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="irc.client.FXMLLoginController">
    <children>
       <Label alignment="CENTER" layoutX="28.0" layoutY="14.0" prefHeight="20.0" prefWidth="121.0" text="IRC" textFill="#451aa1">
          <font>
@@ -16,7 +15,7 @@
          </font>
       </Label>
       <Label layoutX="122.0" layoutY="28.0" text="niezawodny i bezkonkurencyjny" />
-      <TextField fx:id="login" layoutX="127.0" layoutY="82.0" promptText="nick" />
+      <TextField fx:id="login" layoutX="127.0" layoutY="82.0" prefHeight="25.0" prefWidth="171.0" promptText="nick (3-20)" />
       <TextField fx:id="server" layoutX="127.0" layoutY="123.0" promptText="serwer" />
       <Button fx:id="button" layoutX="179.0" layoutY="189.0" mnemonicParsing="false" text="Zaloguj" />
    </children>

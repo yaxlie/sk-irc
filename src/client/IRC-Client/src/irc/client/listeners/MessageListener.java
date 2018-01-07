@@ -64,10 +64,13 @@ public class MessageListener implements Runnable{
 
                 switch(config){
                     case 1:
-                        showPM(sender, msg);
+                        showPM(sender, msg, false);
                         break;
                     case 2:
                         showRM(sender, msg);
+                        break;
+                    case 3:
+                        showPM(sender, msg, true);
                         break;
                     default:
                         break;  
@@ -90,7 +93,7 @@ public class MessageListener implements Runnable{
         this.active = active;
     }
     
-    private void showPM(String sender, IRCMessage msg){
+    private void showPM(String sender, IRCMessage msg, boolean reverse){
         FXMLPmController contr = irc.getUserChatControllers().get(sender);
                 
                 if(contr == null){
@@ -99,13 +102,16 @@ public class MessageListener implements Runnable{
                     public void run() {
                         irc.getfXMLLobbyController().newStagePm(sender);
                         FXMLPmController contr = irc.getUserChatControllers().get(sender);
-                        contr.getMsgArea().appendText("\n" + msg.getSender(true) + ": " + msg.getText(true));
+                        contr.getMsgArea().appendText(reverse?"\n" + irc.getClientInfo().getNickname() + ": " + msg.getText(true)
+                                :"\n" + msg.getSender(true) + ": " + msg.getText(true));
                     }
                     // ...
                     });
                 }
-                else
-                    contr.getMsgArea().appendText("\n" + msg.getSender(true) + ": " + msg.getText(true));
+                else{
+                    contr.getMsgArea().appendText(reverse?"\n" + irc.getClientInfo().getNickname() + ": " + msg.getText(true)
+                                :"\n" + msg.getSender(true) + ": " + msg.getText(true));
+                }
     }
     
         private void showRM(String sender, IRCMessage msg){

@@ -207,7 +207,7 @@ int i;
 							th_message[1].msg = msg;
                                                         strncpy(th_message[1].msg.receiver,msg.sender,sizeof(msg.sender));
                                                         strncpy(th_message[1].msg.sender,msg.receiver,sizeof(msg.sender));
-                                                        th_message[1].msg.config = 1;
+                                                        th_message[1].msg.config = 3;
 							th_message[1].i = id;
                                                         
                                                          pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message[0]);//kontrola bledow #todo

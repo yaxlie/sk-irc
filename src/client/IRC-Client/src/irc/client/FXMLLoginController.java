@@ -52,7 +52,7 @@ public class FXMLLoginController implements Initializable {
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-               if(!"".equals(login.getText())){
+               if(login.getText().length()>2){
                     
                     String ipText = server.getText();
                     boolean dn = (ipText.equals("localhost") || ipText.split(".").length == 4);
