@@ -5,6 +5,10 @@
  */
 package irc.client;
 
+import irc.client.IRCMessage;
+import irc.client.IRCMessage;
+import irc.client.IRCSingleton;
+import irc.client.IRCSingleton;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;

@@ -3,8 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package irc.client;
+package irc.client.listeners;
 
+import irc.client.FXMLRoomController;
+import irc.client.IRCSingleton;
+import irc.client.LobbyDataProcessing;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;

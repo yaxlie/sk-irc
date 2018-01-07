@@ -5,6 +5,9 @@
  */
 package irc.client;
 
+import irc.client.IRCSingleton;
+import irc.client.IRCSingleton;
+import irc.client.IRCSingleton;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
@@ -49,18 +52,23 @@ public class FXMLLoginController implements Initializable {
         button.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if(!"".equals(login.getText())){
-                    
-                    String address="";
-                    try {
-                        InetAddress giriAddress = java.net.InetAddress.getByName(login.getText());
-                        address = giriAddress.getHostAddress();
-                    } catch (UnknownHostException ex) {
-                        Logger.getLogger(FXMLLoginController.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+               if(!"".equals(login.getText())){
                     
                     String ipText = server.getText();
-                    ipText = (ipText.equals("localhost") || ipText.split(".").length == 4)? ipText:address;
+                    boolean dn = (ipText.equals("localhost") || ipText.split(".").length == 4);
+                    String address="";
+                    
+                    if(!dn){
+                        try {
+                            System.out.println("Domain name converting...");
+                            InetAddress giriAddress = java.net.InetAddress.getByName(server.getText());
+                            address = giriAddress.getHostAddress();
+                        } catch (UnknownHostException ex) {
+                            Logger.getLogger(FXMLLoginController.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                    
+                    ipText = dn? ipText:address;
                     
                     irc.getClientInfo().setNickname(login.getText());
                     irc.getServerInfo().setName(ipText);
@@ -68,7 +76,7 @@ public class FXMLLoginController implements Initializable {
                     irc.clientLogin(button);
                 }
             }
-        });
-    }    
+        });  
+    }
     
 }

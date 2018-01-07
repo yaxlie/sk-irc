@@ -5,7 +5,11 @@
  */
 package irc.client;
 
+import irc.client.listeners.LobbyListener;
+import irc.client.listeners.MessageListener;
 import com.sun.javafx.scene.control.skin.LabeledText;
+import irc.client.IRCSingleton;
+import irc.client.IRCSingleton;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
