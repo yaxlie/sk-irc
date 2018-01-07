@@ -108,9 +108,10 @@ void *SendMessageBehavior(void *t_message)
     //pthread_detach(pthread_self());
     struct Th_message *msg = (struct Th_message*)t_message;
     struct Message to_send = (*msg).msg;
+    to_send.config = htonl(to_send.config);
     
-     printf("[server]: Utworzono nowy wątek do wysłania wiadomości.\n",(*msg).i);
-        
+     printf("[server]: Utworzono nowy wątek do wysłania wiadomości.\n");
+     printf("test room id:%d i:%d",(*msg).id, (*msg).i);   
      int fd = accept((*t_data_main).umw[(*msg).i], NULL, NULL);
                         printf("accept\n");
                         
@@ -125,7 +126,7 @@ void *SendMessageBehavior(void *t_message)
 void *SendLobbyBehavior(void *arg)
 {
     pthread_detach(pthread_self());
-    int id = (int*) arg;
+    int id = (int) arg;
      //printf("%d\n", id);
     
     int connection_socket_descriptor = accept((*t_data_main).uls[id], NULL, NULL);
@@ -140,34 +141,16 @@ void *SendLobbyBehavior(void *arg)
     pthread_exit(NULL);
 }
 
-void *SendMessageToRoomBehavior(void *t_message)
-{
-    //pthread_detach(pthread_self());
-    struct Th_message *msg = (struct Th_message*)t_message;
-    struct Message to_send = (*msg).msg;
-    
-     printf("[server]: Utworzono nowy wątek do wysłania wiadomości.\n",(*msg).i);
-        //Janusz stajl
-     int fd = accept(((*msg).id + 1000), NULL, NULL);
-                        printf("accept\n");
-                        
-        printf("[server]: (%d, %s) - Wysyłanie wiadomości \n");
-        write(fd,&to_send, sizeof(to_send));
-        close(fd);
-        pthread_exit(NULL);
-}
-
 
 void *ClientMsgBehavior(void *arg)
 {
     pthread_detach(pthread_self());
-    int id = (int*) arg;
+    int id = (int) arg;
     //printf("%d\n", id);
     
     printf("[server]: (%d, %s) - Stworzono nowy wątek do przetwarzania wiadomości. Czekanie na połączenie...\n", id, (*t_data_main).data.users[id].name);
     
 	struct Message msg;
-        char m[sizeof(struct Message)];
         /*struct Message m;
         strncpy(m.text, msg, sizeof(m.text));
         strncpy(m.sender, "server", sizeof(m.sender));
@@ -198,15 +181,21 @@ int i;
 					printf("[server]: Wyslij widomosc\n");
 					if(strncmp((*t_data_main).data.users[ii].name,msg.receiver,sizeof((*t_data_main).data.users[ii])) == 0){
 							pthread_t thread;
-							struct Th_message th_message;
-							th_message.id = id;
-							th_message.msg = msg;
-							th_message.i = ii;
-							int create_result = pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message);
-							if (create_result){
-								printf(" [server]: Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
-								exit(-1);
-							}
+                                                        pthread_t thread2;
+                                                        
+							struct Th_message th_message[2];
+							th_message[0].id = id;
+							th_message[0].msg = msg;
+                                                        th_message[0].msg.config = 1;
+							th_message[0].i = ii;
+                                                        
+                                                        th_message[1].id = ii;
+							th_message[1].msg = msg;
+                                                        th_message[1].msg.config = 1;
+							th_message[1].i = id;
+                                                        
+                                                         pthread_create(&thread, NULL, SendMessageBehavior, (void *)&th_message[0]);//kontrola bledow #todo
+                                                         pthread_create(&thread2, NULL, SendMessageBehavior, (void *)&th_message[1]);
 							break;
 						}
 				   
@@ -227,11 +216,19 @@ int i;
 									//printf("%d ", (*th_data).data.users[i].port);
 									if((*t_data_main).data.users[i].port != 0)
 									{
+										//to chceck
 										int create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
 										 //printf("nowy watek\n");
 										if (create_result){
+										pthread_t threadl;
 										printf("[server]: Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
-										exit(-1);
+										struct Th_message th_message[2];
+										th_message[0].id = id;
+										th_message[0].i = i;
+										th_message[0].msg = msg;
+										th_message[0].msg.config = 128; 
+										strncpy(th_message[0].msg.text,"Nie udalo sie wyslac wiadomosci",sizeof("Nie udalo sie wyslac wiadomosci"));
+										pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);//todo kontrola bledow
 										}
 									}
 								}
@@ -249,7 +246,33 @@ int i;
 						int iiw = 0;
 						while(iiw < 10){
 							if(strncmp((*t_data_main).data.listaPokojow[ii].users[iiw].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii].users[iiw].name))==0){
+								struct User newUser;
+								(*t_data_main).data.listaPokojow[ii].users[iiw] = newUser;
 								strcpy((*t_data_main).data.listaPokojow[ii].users[iiw].name,"");
+								
+								pthread_t thread1[100];
+								for (i=0; i<MAX_USERS; i++)
+								{
+									//printf("%d ", (*th_data).data.users[i].port);
+									if((*t_data_main).data.users[i].port != 0)
+									{
+										int create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
+										 //printf("nowy watek\n");
+										if (create_result){
+												//to check
+												pthread_t threadl;
+												printf("[server]: Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+												struct Th_message th_message[2];
+												th_message[0].id = id;
+												th_message[0].i = i;
+												th_message[0].msg = msg;
+												th_message[0].msg.config = 128; 
+												strncpy(th_message[0].msg.text,"Nie udalo sie wyslac wiadomosci",sizeof("Nie udalo sie wyslac wiadomosci"));
+												pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);//todo kontrola bledow
+												
+										}
+									}
+								}
 								break;
 							}
 							iiw = iiw + 1;
@@ -262,9 +285,33 @@ int i;
 				while(ii < MAX_USERS){
 
 					if(strncmp((*t_data_main).data.users[ii].name,msg.sender,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
-						strncpy((*t_data_main).data.users[ii].name,"",20);
-						(*t_data_main).data.users[ii].port = 0;
-							printf("[server]: Wylogowano !\n");
+						struct User newUser;
+						(*t_data_main).data.users[ii] = newUser;
+						pthread_t thread1[100];
+						for (i=0; i<MAX_USERS; i++)
+						{
+							//printf("%d ", (*th_data).data.users[i].port);
+							if((*t_data_main).data.users[i].port != 0)
+							{
+								int create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
+								 //printf("nowy watek\n");
+								if (create_result){
+										//to check
+										pthread_t threadl;
+										printf("[server]: Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+										struct Th_message th_message[2];
+										th_message[0].id = id;
+										th_message[0].i = i;
+										th_message[0].msg = msg;
+										th_message[0].msg.config = 128; 
+										strncpy(th_message[0].msg.text,"Nie udalo sie wyslac wiadomosci",sizeof("Nie udalo sie wyslac wiadomosci"));
+										pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);//todo kontrola bledow
+										
+								}
+							}
+						}
+				
+						printf("[server]: Wylogowano !\n");
 						break;
 					}
 					ii = ii + 1;
@@ -285,7 +332,7 @@ int i;
 				printf("[server]: Otrzymano prosbe o wyslanie wiadomosci do calego pokoju\n");
 				printf("Jezeli dziala drogi if i poprawnie tworzy watki to powinno dzilac\n");
 				while(ii < MAX_USERS){
-					if(strncmp((*t_data_main).data.listaPokojow[ii].name,msg.receiver,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
+					if(strncmp((*t_data_main).data.listaPokojow[ii].name,msg.receiver,sizeof(msg.receiver) == 0)){
 						int iiw = 0;
 						pthread_t thread1[10];
 						while(iiw < 10){
@@ -293,15 +340,38 @@ int i;
 							if((*t_data_main).data.listaPokojow[ii].users[iiw].port != 0)
 							{
 								printf("cos sie dzieje\n");
-								struct Th_message th_message;
-								th_message.id = (*t_data_main).data.listaPokojow[ii].users[iiw].port;
-								th_message.msg = msg;
-								th_message.i = iiw;
-								int create_result = pthread_create(&thread1[i], NULL, SendMessageToRoomBehavior, (void *)&th_message);
-								if (create_result){
-									printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
-									exit(-1);
+								int iiq = 0;
+                                                                struct Th_message th_message[10];
+								while(iiq < MAX_USERS){
+									if(strncmp((*t_data_main).data.users[iiq].name,(*t_data_main).data.listaPokojow[ii].users[iiw].name,sizeof((*t_data_main).data.users[iiq].name)) == 0){
+										th_message[iiq].i = iiq;
+										th_message[iiq].id = id;
+										th_message[iiq].msg = msg;
+										th_message[iiq].msg.config = 2;
+										strncpy(th_message[iiq].msg.sender,(*t_data_main).data.listaPokojow[ii].name,sizeof((*t_data_main).data.listaPokojow[ii].name));
+										strncpy(th_message[iiq].msg.type, msg.sender,sizeof(msg.sender));
+										strncpy(th_message[iiq].msg.receiver, (*t_data_main).data.listaPokojow[ii].users[iiw].name,sizeof((*t_data_main).data.listaPokojow[ii].users[iiw].name));
+																		//printf("przed wątkiem id:%d i:%d receiver:%s sender:%s config:%d",th_message.id, th_message.i, th_message.msg.receiver,th_message.msg.sender, th_message.msg.config );
+										int create_result = pthread_create(&thread1[iiq], NULL, SendMessageBehavior, (void *)&th_message[iiq]);
+										if (create_result){
+											//to chceck
+										pthread_t threadl;
+										printf("[server]: Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
+										struct Th_message th_message[2];
+										th_message[0].id = id;
+										th_message[0].i = i;
+										th_message[0].msg = msg;
+										th_message[0].msg.config = 128; 
+										strncpy(th_message[0].msg.text,"Nie udalo sie wyslac wiadomosci",sizeof("Nie udalo sie wyslac wiadomosci"));
+										pthread_create(&threadl, NULL, SendMessageBehavior, (void *)&th_message[0]);//#todo kontrola bledow
+										}
+								
+										
+										break;
+									}
+									iiq = iiq + 1;
 								}
+
 							}
 							iiw = iiw + 1;
 						}
@@ -333,8 +403,6 @@ void handleConnection(int connection_socket_descriptor) {
     //dane, ktĂłre zostanÄ… przekazane do wÄ…tku
     struct thread_data_t *th_data = (struct thread_data_t*)t_data_main;
     (*th_data).sfd = connection_socket_descriptor;
-    struct data_lobby d_lobby;
-    d_lobby.main_data = (*th_data);
 
     char msg[20];      
     if(read((*th_data).sfd,msg,sizeof(msg))){
@@ -353,15 +421,16 @@ void handleConnection(int connection_socket_descriptor) {
         printf("Błąd przy próbie utworzenia wątku ClientMsgBehavior, kod błędu: %d\n", create_result);
         exit(-1);
         }
-        
+        printf("[TEST]: port noweko klienta %d\n", (*th_data).data.users[id].port);
         //send lobby data
         int i;
         for (i=0; i<MAX_USERS; i++)
         {
+			
             //printf("%d ", (*th_data).data.users[i].port);
             if((*th_data).data.users[i].port != 0)
             {
-                
+                printf("%d [TEST]: port noweko klienta %d\n",i, (*th_data).data.users[i].port);
                 create_result = pthread_create(&thread1[i], NULL, SendLobbyBehavior, (void*)i);
                  //printf("nowy watek\n");
                 if (create_result){
@@ -377,7 +446,6 @@ void handleConnection(int connection_socket_descriptor) {
 int createSocket(int port)
 {
    int server_socket_descriptor;
-   int connection_socket_descriptor;
    int bind_result;
    int listen_result;
    char reuse_addr_val = 1;
@@ -428,10 +496,24 @@ int main(int argc, char* argv[])
         (*t_data_main).uls[i] = createSocket(CLIENT_PORT + i);
     }
     
-    printf("[server]: (init) - Tworzenie pokojów...\n");
+       printf("[server]: (init) - Tworzenie pokojów...\n");
+    
+    strncpy((*t_data_main).data.listaPokojow[0].name, "Pierwszy!", 20);
+    strncpy((*t_data_main).data.listaPokojow[1].name, "Nietykalni", 20);
+    strncpy((*t_data_main).data.listaPokojow[2].name, "FFXIV", 20);
+    strncpy((*t_data_main).data.listaPokojow[3].name, "Bazy Poprawka", 20);
+    strncpy((*t_data_main).data.listaPokojow[4].name, "FSociety", 20);
+    strncpy((*t_data_main).data.listaPokojow[5].name, "オタク", 20);
+    strncpy((*t_data_main).data.listaPokojow[6].name, "BlaBlaBla", 20);
+    strncpy((*t_data_main).data.listaPokojow[7].name, "for the horde", 20);
+    strncpy((*t_data_main).data.listaPokojow[8].name, "Oblalem Egzamin Z Baz :(", 20);
+    strncpy((*t_data_main).data.listaPokojow[8].name, "Bilderberg", 20);
+    strncpy((*t_data_main).data.listaPokojow[9].name, "VIP Room", 20);
+    strncpy((*t_data_main).data.listaPokojow[9].password, "1234", 20);
+	
     for(i=0; i<MAX_ROOMS; i++)
     {
-        strncpy((*t_data_main).data.listaPokojow[i].name, "Pokoj", 20);
+       
 		int ii = 0;
 		while(ii < 10){
 			strncpy((*t_data_main).data.listaPokojow[i].users[ii].name,"",20);
