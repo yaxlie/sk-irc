@@ -7,8 +7,10 @@ package irc.client;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,28 +51,21 @@ public class FXMLLoginController implements Initializable {
             public void handle(ActionEvent event) {
                 if(!"".equals(login.getText())){
                     
+                    String address="";
+                    try {
+                        InetAddress giriAddress = java.net.InetAddress.getByName(login.getText());
+                        address = giriAddress.getHostAddress();
+                    } catch (UnknownHostException ex) {
+                        Logger.getLogger(FXMLLoginController.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                    String ipText = server.getText();
+                    ipText = (ipText.equals("localhost") || ipText.split(".").length == 4)? ipText:address;
+                    
                     irc.getClientInfo().setNickname(login.getText());
-                    irc.getServerInfo().setName(!"".equals(server.getText())? server.getText():"localhost");
+                    irc.getServerInfo().setName(ipText);
                     
                     irc.clientLogin(button);
-                    
-//                    FXMLLoader fxmlLoader = new FXMLLoader();
-//                    fxmlLoader.setLocation(getClass().getResource("FXMLLobby.fxml"));
-//                    Scene scene;
-//                    try {
-//                        scene = new Scene(fxmlLoader.load());
-//                        Stage stage = new Stage();
-//                        stage.setTitle("Poczekalnia IRC");
-//                        stage.setScene(scene);
-//                        stage.show();
-//                        
-//                        stage = (Stage) button.getScene().getWindow();
-//                        // do what you have to do
-//                        stage.close();
-//                        
-//                        } catch (IOException ex) {
-//                            Logger.getLogger(FXMLLoginController.class.getName()).log(Level.SEVERE, null, ex);
-//                        }
                 }
             }
         });
