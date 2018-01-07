@@ -24,6 +24,7 @@
 int client_port = CLIENT_PORT;
 
 //struktura uzytkownikow
+//Przechowywane sa w niej informacje o uzytkownikach
 struct User
 {
     int port;
@@ -31,6 +32,7 @@ struct User
 };
 
 //struktura pokoju
+//Przechowywuje informacje o aktualnym stanie pokojow
 struct Room
 {
     int id;
@@ -40,6 +42,7 @@ struct Room
 };
 
 //struktura wiadomosci
+//Wykozystywana do wysylania informacji 
 struct Message
 {
     //do konfiguracji/przelaczania
@@ -50,7 +53,7 @@ struct Message
     char date[40];
     char type[20];
 };
-
+//Struktura pomocnicza sluzaca do wysylania informacji przez serwer do klienta zawiera pola wymagane do poprawnego wyslania informacji do klienta
 struct Th_message
 {
     int fd;
@@ -81,6 +84,7 @@ struct thread_data_t
     struct data2send data;
 };
 
+//Sluzy do wysylnia wszystkich niezbednych informcji do klienta jak nazwy pokojow
 struct data_lobby
 {
     struct thread_data_t main_data;
@@ -90,7 +94,7 @@ struct data_lobby
 
 struct thread_data_t *t_data_main; 
 
-
+//Funkcja wykozystywana do przypisywania użytkownika do miejsca w tablicy a tymsamym przyznanie mu portow i soketow
 int assignCPort(struct User u[])
 {
     int i;
@@ -101,7 +105,7 @@ int assignCPort(struct User u[])
     }
     return i;
 }
-
+//Funkcj wykozystywana do wyslania wiadomosci do uzytkownika
 void *SendMessageBehavior(void *t_message)
 {
     //pthread_detach(pthread_self());
@@ -121,7 +125,7 @@ void *SendMessageBehavior(void *t_message)
         
         pthread_exit(NULL);
 }
-//funkcja opisujÄ…cÄ… zachowanie wÄ…tku - musi przyjmowaÄ‡ argument typu (void *) i zwracaÄ‡ (void *)
+//funkcja krora wysyla lobby do odpowiedniego uzytkownika
 void *SendLobbyBehavior(void *arg)
 {
     pthread_detach(pthread_self());
@@ -139,7 +143,7 @@ void *SendLobbyBehavior(void *arg)
     close(connection_socket_descriptor);
     pthread_exit(NULL);
 }
-
+//Wysyla lobby do wszystkich uzytkownikow
 void sendLobbyToAll()
 {
     pthread_t threadLobby[100];
@@ -154,7 +158,7 @@ void sendLobbyToAll()
         }
     }
 }
-
+//Glowna funkcja ktora odpowiada za funkcjonalnosc serwera, nasluchuje ona na porcie klienta i w zaleznosci od wyslanej informacji wysyla odpowiednie informacje do klienta/klientów
 void *ClientMsgBehavior(void *arg)
 {
     pthread_detach(pthread_self());
@@ -165,11 +169,6 @@ void *ClientMsgBehavior(void *arg)
     printf("[server]: (%d, %s) - Stworzono nowy wątek do przetwarzania wiadomości. Czekanie na połączenie...\n", id, (*t_data_main).data.users[id].name);
     sendLobbyToAll();
 	struct Message msg;
-        /*struct Message m;
-        strncpy(m.text, msg, sizeof(m.text));
-        strncpy(m.sender, "server", sizeof(m.sender));
-        strncpy(m.receiver, "client", sizeof(m.receiver));
-        strncpy(m.date, "10-10-2010", sizeof(m.date));*/
         while(active)
         {
             int connection_socket_descriptor = accept((*t_data_main).ums[id], NULL, NULL);
@@ -183,13 +182,14 @@ void *ClientMsgBehavior(void *arg)
             read(connection_socket_descriptor,&msg,sizeof(msg));
             printf("%d \n", sizeof(msg));
             close(connection_socket_descriptor);
-            //TODO msg.config JEST ZLE CZYTANY (ZLA KONWERSJA Z JAVY?)
             
 int i;
             printf("[server]: (%d, %s) - Odebrano wiadomość, przetwarzanie...\n", id, (*t_data_main).data.users[id].name);
-            //printf("[server]: %d.\n%s.\n%s.\n%s.\n%s.\n",msg.config, msg.text, msg.sender, msg.receiver, msg.date);
             int ii = 0;
+			//rozpoczecie rozpoznawania wiadomosci
+			
 			if(strncmp(msg.type,"11",2)==0){
+				//Wyslanie wiadomosci prywatnej do konkretnego uzytkownika
 				while(ii < MAX_USERS){
 					//printf("(%d, %d, %s) - Odebrano wiadomość, przetwarzanie...\n", th_message.id, th_message.i, th_message.msg.text);
 					printf("[server]: Wyslij widomosc\n");
@@ -218,6 +218,7 @@ int i;
 					ii = ii + 1;
 				}
 			}else if(strncmp(msg.type,"12",2)==0){
+				//dolaczanie do pokoju
 				printf("[server]: dolacz do pokoju\n");
 				while(ii < MAX_ROOMS){
 					if(strncmp((*t_data_main).data.listaPokojow[ii].name,msg.receiver,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
@@ -256,6 +257,7 @@ int i;
 					ii = ii + 1;
 				}
 			}else if(strncmp(msg.type,"13",2)==0){
+				//Wychodzzenie z pokoju
 				printf("[server]: Klient poprosil o wyjscie z pokoju\n");
 				while(ii < MAX_ROOMS){
 					if(strncmp((*t_data_main).data.listaPokojow[ii].name,msg.receiver,sizeof((*t_data_main).data.listaPokojow[ii]).name) == 0){
@@ -272,6 +274,7 @@ int i;
 				}
                                 sendLobbyToAll();
 			}else if(strncmp(msg.type,"14",2)==0){
+				//wylogowanie klienta 
 				printf("[server]: Otrzymano prosbe o wylogowanie\n");
 				while(ii < MAX_USERS){
 
@@ -322,6 +325,7 @@ int i;
                                 active = 0;
                                 sendLobbyToAll();
 			}else if((strncmp(msg.type,"15",2)==0)){
+				//wyslanie wiadomosci do wszystkich w pokoju
 				printf("[server]: Otrzymano prosbe o wyslanie wiadomosci do calego pokoju\n");
 				printf("Jezeli dziala drogi if i poprawnie tworzy watki to powinno dzilac\n");
 				while(ii < MAX_USERS){
@@ -374,7 +378,7 @@ int i;
 				ii = ii + 1;
 				}
 			}else{
-				printf("Nie poprawne gowno\n");
+				printf("[server]: Nie rozpoznano polecenia wyslanego przez klienta.\n");
 			}
         }
     pthread_exit(NULL);
@@ -382,7 +386,7 @@ int i;
 
 
 
-//funkcja obsĹ‚ugujÄ…ca poĹ‚Ä…czenie z nowym klientem
+//funkcja opisujaca podlaczenie nowego klienta 
 void handleConnection(int connection_socket_descriptor) {
     //wynik funkcji tworzÄ…cej wÄ…tek
     int create_result = 0;
@@ -417,7 +421,7 @@ void handleConnection(int connection_socket_descriptor) {
        sendLobbyToAll();
     }
 }
-
+//funkcja tworzacz sokety
 int createSocket(int port)
 {
    int server_socket_descriptor;
@@ -454,7 +458,7 @@ int createSocket(int port)
    }
    return server_socket_descriptor;
 }
-
+//finkcja rozpoczynajaca dzialanie programu
 int main(int argc, char* argv[])
 {
     printf("\n[server]: Witaj w najlepszym IRCu na Twoim komputerze!\n\n");
@@ -473,6 +477,7 @@ int main(int argc, char* argv[])
     
        printf("[server]: (init) - Tworzenie pokojów...\n");
     
+	//tworzenie pokojow 
     strncpy((*t_data_main).data.listaPokojow[0].name, "Pierwszy!", 20);
     strncpy((*t_data_main).data.listaPokojow[1].name, "Nietykalni", 20);
     strncpy((*t_data_main).data.listaPokojow[2].name, "FFXIV", 20);
